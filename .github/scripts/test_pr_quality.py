@@ -33,6 +33,9 @@
 
 import importlib.util
 import os
+import json
+import shutil
+import sys
 from pathlib import Path
 import subprocess
 import tempfile
@@ -75,6 +78,54 @@ class QualityGateTests(unittest.TestCase):
             quality.tidy_sources(commands, ["unrelated.cpp"], dependencies, root),
             ["/repo/unrelated.cpp"],
         )
+
+    @unittest.skipUnless(
+        all(shutil.which(tool) for tool in ("clang-tidy-18", "clang++-18", "ninja")),
+        "requires Clang 18 and Ninja (installed by the smoke job)",
+    )
+    def test_tidy_actually_analyzes_changed_header_and_propagates_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            subprocess.run(["git", "init", "-q", directory], check=True)
+            (root / ".gitattributes").write_text("*.h filter=complete_formatting\n")
+            (root / ".clang-tidy").write_text(
+                "Checks: '-*,clang-analyzer-core.DivideZero'\n"
+                "HeaderFilterRegex: .*\nWarningsAsErrors: '*'\n"
+            )
+            header = root / "fixture.h"
+            header.write_text("inline int division() { return 1; }\n")
+            source = root / "fixture.cpp"
+            source.write_text('#include "fixture.h"\nint f() { return division(); }\n')
+            (root / "build.ninja").write_text(
+                "rule compile\n"
+                "  command = clang++-18 -MD -MF $out.d -c $in -o $out\n"
+                "  depfile = $out.d\n  deps = gcc\n"
+                f"build fixture.o: compile {source}\n"
+            )
+            subprocess.run(["ninja", "-C", directory], check=True, capture_output=True)
+            commands = [
+                {
+                    "directory": directory,
+                    "file": str(source),
+                    "command": f"clang++-18 -c {source} -o fixture.o",
+                    "output": "fixture.o",
+                }
+            ]
+            (root / "compile_commands.json").write_text(json.dumps(commands))
+            (root / "changed-files.json").write_text(json.dumps(["fixture.h"]))
+            command = [
+                sys.executable,
+                str(Path(__file__).with_name("pr-quality.py")),
+                "tidy",
+                "--build",
+                ".",
+            ]
+            good = subprocess.run(command, cwd=root, capture_output=True, text=True)
+            self.assertEqual(good.returncode, 0, good.stdout + good.stderr)
+            header.write_text("inline int division() { return 1 / 0; }\n")
+            bad = subprocess.run(command, cwd=root, capture_output=True, text=True)
+            self.assertNotEqual(bad.returncode, 0, bad.stdout + bad.stderr)
+            self.assertIn("division by zero", (bad.stdout + bad.stderr).lower())
 
     def test_git_paths_with_spaces_and_deleted_files(self):
         with tempfile.TemporaryDirectory() as directory:

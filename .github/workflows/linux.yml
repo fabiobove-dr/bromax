@@ -50,6 +50,7 @@ jobs:
           key: linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.mode }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', '**/CMakeLists.txt') }}-${{ github.sha }}
           restore-keys: |
             linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.mode }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', '**/CMakeLists.txt') }}-
+            linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.mode }}-
       - name: Fetch versioned regression tests
         run: cmake -P .github/scripts/fetch-regressiontests.cmake
       - name: Configure
