@@ -33,6 +33,8 @@ jobs:
           tar -xf /tmp/actionlint.tar.gz -C /tmp actionlint
       - name: Test paired benchmark inference and guards
         run: python -m unittest discover -s admin/benchmarks
+      - name: Test reproducibility comparisons and failure artifacts
+        run: python -m unittest discover -s admin/reproducibility
       - name: Check canonical corpus integrity and selection
         run: python -m unittest discover -s tests/corpus
       - name: Test change classification and header analysis selection

@@ -68,6 +68,11 @@ jobs:
         run: cmake --build build --target all tests --parallel 2 2>&1 | tee build.log
       - name: Test
         run: ctest --test-dir build --output-on-failure --no-tests=error --parallel 2 --output-junit junit.xml 2>&1 | tee test.log
+      - name: Check CPU reproducibility and checkpoint restart
+        if: matrix.build_type == 'Release' && matrix.mode == 'thread-mpi'
+        run: |
+          python3 admin/reproducibility/cpu.py --build build --output reproducibility
+          cat reproducibility/summary.md >> "$GITHUB_STEP_SUMMARY"
       - name: Compiler cache statistics
         if: always()
         run: ccache --show-stats
@@ -85,6 +90,7 @@ jobs:
             build/CMakeCache.txt
             build/CMakeFiles/CMakeConfigureLog.yaml
             build/Testing/Temporary/
+            reproducibility/
 
   documentation:
     if: github.repository == 'fabiobove-dr/bromax' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
