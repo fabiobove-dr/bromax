@@ -71,7 +71,7 @@ jobs:
       - name: Build
         run: cmake --build build --target all tests --parallel 2 2>&1 | tee build.log
       - name: Test
-        run: ctest --test-dir build --output-on-failure --no-tests=error --parallel 2 --output-junit junit.xml 2>&1 | tee test.log
+        run: env -u OMP_NUM_THREADS ctest --test-dir build --output-on-failure --no-tests=error --parallel 2 --output-junit junit.xml 2>&1 | tee test.log
       - name: Check CPU reproducibility and checkpoint restart
         if: matrix.build_type == 'Release' && matrix.mode == 'thread-mpi'
         run: |

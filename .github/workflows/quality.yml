@@ -140,7 +140,7 @@ jobs:
       - name: Build application and test dependencies
         run: cmake --build build --target all tests --parallel 2 2>&1 | tee build.log
       - name: Run unit smoke tests
-        run: ctest --test-dir build -L UnitTest --output-on-failure --no-tests=error --parallel 2 --output-junit smoke-junit.xml 2>&1 | tee smoke.log
+        run: env -u OMP_NUM_THREADS ctest --test-dir build -L UnitTest --output-on-failure --no-tests=error --parallel 2 --output-junit smoke-junit.xml 2>&1 | tee smoke.log
       - name: Analyze changed C++ and header consumers
         run: python3 .github/scripts/pr-quality.py tidy --build build 2>&1 | tee clang-tidy.log
       - name: Upload smoke and analysis diagnostics

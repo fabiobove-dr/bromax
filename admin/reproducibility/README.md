@@ -14,6 +14,8 @@ The CI calls it in GCC and Clang Release/thread-MPI jobs after ordinary CTest.
 Linux and quality workflow steps explicitly use Bash with pipeline failure
 propagation, so a failing compiler/test cannot be hidden by `tee` logs. Clang
 OpenMP development headers are explicitly installed.
+CTest also removes the ambient `OMP_NUM_THREADS` so tests that explicitly
+request one thread do not conflict with the job environment.
 
 Each of the three corpus cases runs at one rank with one and two OpenMP threads.
 Within each configuration, two independent 200-step `-reprod` runs and a
