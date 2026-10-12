@@ -1,21 +1,14 @@
 name: Linux build and test
 
 on:
-  pull_request:
-    branches: [main]
-    paths-ignore: ['docs/**', '**/*.md', README, AUTHORS, COPYING, CITATION.cff]
-  push:
-    branches: [main]
-    paths-ignore: ['docs/**', '**/*.md', README, AUTHORS, COPYING, CITATION.cff]
+  workflow_call:
   workflow_dispatch:
-  schedule:
-    - cron: '23 3 * * 1'
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-linux-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:

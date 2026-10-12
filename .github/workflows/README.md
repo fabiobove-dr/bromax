@@ -3,8 +3,8 @@
 All workflows run in `fabiobove-dr/bromax`; they never push to or open PRs
 against upstream GROMACS. Tokens have read-only repository permissions and
 checkout does not retain credentials. GitHub Actions requires no GitLab
-runner, token or project. Feature branches run through `pull_request`; only
-`main` runs on `push`, avoiding duplicate push/PR builds for feature branches.
+runner, token or project. `ci.yml` is the PR/push control plane: feature branches run through
+`pull_request`; only `main` runs on `push`, avoiding duplicate builds.
 Superseded runs for a PR/ref are cancelled.
 
 ## Pull requests and main
@@ -17,10 +17,31 @@ correctness checks, not performance benchmarks. OpenMPI permits local
 oversubscription for tests on hosted runners, with binding disabled.
 
 `build_cmake.yml` retains Windows x64/ARM64 and macOS Clang/OpenCL coverage.
-Both workflows skip documentation-only changes. Issue #8 tracks the separate
-fast formatting/static-analysis gate and stable required-check aggregation.
-Until that gate lands, do not require these path-filtered workflows for
-documentation-only PRs: GitHub can otherwise leave required checks pending.
+Both build matrices are reusable workflows called after `quality.yml` passes.
+The control plane always runs, including documentation-only PRs. The quality
+checks classify the diff against the Bromax merge base; documentation-only
+changes skip compiled-code jobs while reporting the stable `PR quality gate`
+and `Bromax CI result` checks. Select the full displayed check names in branch
+protection after the first run; never require an intentionally skipped matrix
+job for documentation-only changes.
+
+Changed C/C++ formatting uses the inherited `.gitattributes` selection and
+clang-format 18.1.8. Copyright checks use `admin/copyright.sh`. Changed Python
+uses the repository Black/flake8 configurations. Workflows are checked with
+checksum-verified actionlint. Patches/logs are uploaded when checks fail.
+
+When compiled-code checks are required, the CPU smoke job configures with
+Clang 18 and builds the application/tests to generate headers and Ninja's actual
+include-dependency database. It runs the `UnitTest` CTest label and clang-tidy
+on changed translation units and transitive consumers of changed headers,
+using the existing per-directory `.clang-tidy` settings. The broader matrices
+run only after this gate. CPU analysis reports sources absent from its compile
+database; it cannot replace CUDA/HIP/SYCL/OpenCL configuration checks. Compiler
+cache entries are shared with the equivalent Linux Clang Release build.
+
+Run helper tests locally with `python3 .github/scripts/test_pr_quality.py`.
+The stable final check verifies that requested matrix coverage passed and that
+only intentionally skipped jobs were skipped.
 
 Compiler caches are separated by compiler/build mode and CMake configuration.
 Linux jobs upload JUnit results, CTest output, configure/build/test logs and
@@ -44,9 +65,10 @@ additional guardrails. Do not infer backend validation from a CPU CI pass.
 
 ## Manual and scheduled checks
 
-Run `gh workflow run linux.yml --repo fabiobove-dr/bromax` for the full Linux
-matrix, Clang ASAN/UBSAN builds and Sphinx documentation build. The same broader
-checks run each Monday at 03:23 UTC. Windows/macOS builds can be triggered with
+Run `gh workflow run ci.yml --repo fabiobove-dr/bromax` for quality gates,
+the full matrices, Clang ASAN/UBSAN builds and Sphinx documentation. The weekly
+03:23 UTC Monday run exercises the quality gates and broader Linux checks.
+Direct manual `linux.yml` runs remain available for isolated diagnosis. Windows/macOS builds can be triggered with
 `gh workflow run build_cmake.yml --repo fabiobove-dr/bromax`.
 
 GPU tests require a separately approved hardware runner; no untrusted PR code
