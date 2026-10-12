@@ -35,7 +35,11 @@ if ("$ENV{RUNNER_OS}" STREQUAL "Windows" AND NOT "x$ENV{ENVIRONMENT_SCRIPT}" STR
   execute_process(
     COMMAND "$ENV{ENVIRONMENT_SCRIPT}" && set
     OUTPUT_FILE environment_script_output.txt
+    RESULT_VARIABLE environment_result
   )
+  if(NOT environment_result EQUAL 0)
+    message(FATAL_ERROR "Visual Studio environment setup failed: ${environment_result}")
+  endif()
   file(STRINGS environment_script_output.txt output_lines)
   foreach(line IN LISTS output_lines)
     if (line MATCHES "^([a-zA-Z0-9_-]+)=(.*)$")
@@ -67,7 +71,8 @@ execute_process(
     -D GMX_SIMD=None
     -D GMX_FFT_LIBRARY=FFTPACK
     -D GMX_OPENMP=$ENV{OPENMP_VAR}
-    -D REGRESSIONTEST_DOWNLOAD=ON
+    -D REGRESSIONTEST_DOWNLOAD=OFF
+    -D REGRESSIONTEST_PATH=${CMAKE_CURRENT_SOURCE_DIR}/regressiontests-2026.4
   RESULT_VARIABLE result
 )
 if (NOT result EQUAL 0)
