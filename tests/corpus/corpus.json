@@ -1,0 +1,157 @@
+{
+  "version": 1,
+  "provenance": {
+    "repository": "https://github.com/fabiobove-dr/bromax",
+    "revision": "488b9c1407a4aed6715ddbe218bac3db928b89dc",
+    "source": "Inherited GROMACS physical-validation systems; no input modifications.",
+    "license": "LGPL-2.1-or-later; see COPYING and preserve topology citations."
+  },
+  "cases": [
+    {
+      "name": "int_water_md_none_pme_pme",
+      "purpose": "Flexible 2700-atom water: NVE integrator convergence and electrostatic/LJ PME.",
+      "tags": [
+        "cpu",
+        "nve",
+        "integrator",
+        "pme",
+        "flexible-water"
+      ],
+      "allowed": {
+        "backend": [
+          "cpu"
+        ],
+        "precision": [
+          "single"
+        ],
+        "ranks": [
+          1
+        ]
+      },
+      "inputs": {
+        "tests/physicalvalidation/systems/int_water_md_none_pme_pme/input/system.gro": "3e59164fca526215dadb69b0a72d78c27134d0b55d760673edfc0504409e6ee3",
+        "tests/physicalvalidation/systems/int_water_md_none_pme_pme/input/system.top": "1152733f59072bd2817a1021c0ce077772243967b95a2b6da184e2885d970d32",
+        "tests/physicalvalidation/systems/int_water_md_none_pme_pme/input/system.mdp": "e20d3b9e78c59bacb90ea7c5cbe1e5b7935c22c586e07b411c3ec02bddcf3b58"
+      },
+      "benchmark": {
+        "warmup_steps": 1000,
+        "sample_steps": 5000,
+        "paired_samples": 5
+      },
+      "validation": {
+        "name": "int_water_md_none_pme_pme",
+        "dir": "int_water_md_none_pme_pme",
+        "tests": [
+          {
+            "test": "integrator",
+            "args": "-n 3 -t 0.25"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ens_water_md_settle_pme_vr",
+      "purpose": "Rigid 2700-atom water: SETTLE, electrostatic PME and NVT ensemble/kinetic checks.",
+      "tags": [
+        "cpu",
+        "nvt",
+        "ensemble",
+        "kinetic-energy",
+        "pme",
+        "settle"
+      ],
+      "allowed": {
+        "backend": [
+          "cpu"
+        ],
+        "precision": [
+          "single"
+        ],
+        "ranks": [
+          1
+        ]
+      },
+      "inputs": {
+        "tests/physicalvalidation/systems/ens_water_md_settle_pme_vr/input/system.gro": "3e59164fca526215dadb69b0a72d78c27134d0b55d760673edfc0504409e6ee3",
+        "tests/physicalvalidation/systems/ens_water_md_settle_pme_vr/input/system.top": "6ce956cab5fba1cdc99d2d1f72a5be5c565c74c1e29a56783b9ae23c7e49b08c",
+        "tests/physicalvalidation/systems/ens_water_md_settle_pme_vr/input/system.mdp": "09e1113c690d0703e8003fbaa84ddfbd65baf8cb6aa40045c187314ea570f288"
+      },
+      "benchmark": {
+        "warmup_steps": 1000,
+        "sample_steps": 5000,
+        "paired_samples": 5
+      },
+      "validation": {
+        "name": "ens_water_md_settle_pme_vr",
+        "dir": "ens_water_md_settle_pme_vr",
+        "tests": [
+          {
+            "test": "ensemble",
+            "args": "-t 4 --dtemp 9"
+          },
+          {
+            "test": "kin_mb",
+            "args": "-t 0.01"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ens_argon_md_pme_vr_cr",
+      "purpose": "1000-atom neutral argon: CPU nonbonded work and NPT ensemble/kinetic checks. This is not an electrostatic PME benchmark.",
+      "tags": [
+        "cpu",
+        "npt",
+        "ensemble",
+        "kinetic-energy",
+        "lj",
+        "argon"
+      ],
+      "allowed": {
+        "backend": [
+          "cpu"
+        ],
+        "precision": [
+          "single"
+        ],
+        "ranks": [
+          1
+        ]
+      },
+      "inputs": {
+        "tests/physicalvalidation/systems/ens_argon_md_pme_vr_cr/input/system.gro": "75fca0d8f03159da6dfc21573ecb87b188176c435158beadae74c4121f14e6eb",
+        "tests/physicalvalidation/systems/ens_argon_md_pme_vr_cr/input/system.top": "730b33c37f2989fd5a55607322c647c110a0203ce34e4fc4e03c5f7bc16945f7",
+        "tests/physicalvalidation/systems/ens_argon_md_pme_vr_cr/input/system.mdp": "9d2eb4671c1ffda0391740ca82af87583e65787a2b0a693ab760f13492b3ea97"
+      },
+      "benchmark": {
+        "warmup_steps": 1000,
+        "sample_steps": 5000,
+        "paired_samples": 5
+      },
+      "validation": {
+        "name": "ens_argon_md_pme_vr_cr",
+        "dir": "ens_argon_md_pme_vr_cr",
+        "tests": [
+          {
+            "test": "ensemble",
+            "args": "-t 4 --dtemp 3 0 3 --dpress 0 75 75"
+          },
+          {
+            "test": "kin_mb",
+            "args": "-t 0.01"
+          }
+        ]
+      }
+    }
+  ],
+  "seed_policy": {
+    "benchmark_ld_seed": 20261012,
+    "validation_ld_seeds": [
+      20261012,
+      20261013,
+      20261014,
+      20261015,
+      20261016
+    ]
+  }
+}
