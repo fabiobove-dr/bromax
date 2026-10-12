@@ -63,7 +63,7 @@ please make sure that you have checked all the points on this list:
   We also need some form of automated high-level test of your code,
   because people who do not understand its details need to be able to
   change the infrastructure that you depend on. |Gromacs| uses
-  automated continuous-integration testing in :doc:`GitLab <gitlab-ci>`,
+  automated continuous-integration testing in :doc:`GitHub Actions <github-actions>`,
   and we need quick feedback about whether your
   code would be affected by a proposed change. This means the users of
   your feature can continue to do good science based upon trustworthy
@@ -126,29 +126,11 @@ please make sure that you have checked all the points on this list:
 Preparing code for submission
 -----------------------------
 
-|Gromacs| uses ``git`` for :doc:`change-management`.
-Instead of accepting "pull requests", |Gromacs| changes are submitted as individual
-commits on the tip of the ``main`` branch hosted at `gitlab`_.
-Preparing, submitting, and managing patches for a change requires a little bit
-of set-up. Refer to :doc:`change-management` for information about
-
-* accessing the |Gromacs| *git* repository
-* structure of the repository
-* source control without merge commits
-* ``git`` usage that may be less common in other development work flows
-
-Alternatives
-------------
-
-|Gromacs| has a public mirror available on GitHub at
-https://github.com/gromacs/gromacs. You may wish to fork the project
-under your own GitHub account and make your feature available that
-way. This should help you to generate a following of users that would
-help make the case for contributing the feature to the core. This
-process would then still need to follow the remaining criteria
-outlined here.  If you fork |Gromacs|, please set the CMake variable
-``GMX_VERSION_STRING_OF_FORK`` to an appropriate descriptive string
-- see cmake/gmxVersionInfo.cmake for details.
+Bromax uses GitHub pull requests against ``main`` in ``fabiobove-dr/bromax``.
+Keep each change scoped to a linked issue, include tests and scientific/performance
+evidence where applicable, and squash-merge after validation. See
+:doc:`change-management` and root ``AGENTS.md`` for commands and review rules.
+Upstream GROMACS remains read/fetch-only for this workflow.
 
 There is a project underway to develop a stable API for |Gromacs|,
 which promises to be a great tool for permitting innovation while

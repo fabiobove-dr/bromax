@@ -1788,30 +1788,19 @@ with ``GMX_SIMD=ARM_SVE`` which is the default option when available.
 Tested platforms
 ----------------
 
-While it is our best belief that |Gromacs| will build and run pretty
-much everywhere, it is important that we tell you where we really know
-it works because we have tested it.
-Every commit in our git source code repository
-is currently tested with a range of configuration options on x86 with
-gcc versions 11-14,
-clang versions including 14, 18, and 19,
-CUDA versions 12.1, 12.5.1, and 12.6,
-nvcxx version 24.7
-HIP version 5.7.1 and 6.2.2
-AdaptiveCPP 24.02 and 24.10 with ROCm 5.7.1 and 6.2 (respectively),
-and
-oneAPI version 2024.0 and 2024.2 (including CUDA 12.0.1 and ROCm 6.1.3 backends).
+Bromax records tested configurations in its
+`GitHub Actions runs <https://github.com/fabiobove-dr/bromax/actions>`_.
+The retained matrix covers Linux GCC/Clang Release and Debug, thread-MPI,
+serial and external MPI, double precision, Windows x64/ARM64, and macOS
+Clang/OpenCL. Manual/weekly jobs cover ASAN/UBSAN and Sphinx documentation.
+See the `CI guide <https://github.com/fabiobove-dr/bromax/blob/main/docs/dev-manual/github-actions.rst>`_
+for commands and artifacts.
 
-For this testing, we use Ubuntu 22.04 and 24.04 operating systems.
-Other compiler, library, and OS versions are tested less frequently.
-For details, you can have a look at the
-`continuous integration server used by the GitLab project <https://gitlab.com/gromacs/gromacs/>`_,
-which uses GitLab runner on a local k8s x86 cluster with NVIDIA,
-AMD, and Intel GPU support.
-
-We test irregularly on ARM v8, Fujitsu A64FX, Cray, Power9,
-and other environments, and
-with other compilers and compiler versions, too.
+Inherited support for CUDA, HIP, SYCL and other platforms is not evidence
+that these backends have been validated on Bromax hardware. Consult
+the `performance and accuracy guide <https://github.com/fabiobove-dr/bromax/blob/main/docs/user-guide/bromax-performance-accuracy.rst>`_
+for the backend evidence
+and scientific requirements before relying on an optimization.
 
 Support
 -------
@@ -1821,4 +1810,4 @@ downloads, and release notes for any |Gromacs| release.
 
 Visit the `user forums <http://forums.gromacs.org/>`_ for discussions and advice.
 
-Report bugs at https://gitlab.com/gromacs/gromacs/-/issues
+Report Bromax bugs at https://github.com/fabiobove-dr/bromax/issues

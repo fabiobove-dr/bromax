@@ -63,13 +63,10 @@ module.
 Building the documentation
 --------------------------
 
-If you want to see up-to-date documentation, you can download artifacts from
-the ``webpage`` job of the latest scheduled pipeline for a corresponding branch
-(https://gitlab.com/gromacs/gromacs/-/pipelines?page=1&scope=all&source=schedule).
-CI also runs Doxygen for all changes pushed to GitLab for
-release and main branches, and the resulting documentation can be
-found in the artifacts of the corresponding ``webpage`` job.
-The Doxygen job will fail if it introduces any Doxygen warnings.
+Bromax documentation artifacts are available from the manual GitHub Actions
+``Documentation`` job. It builds Sphinx pages; do not infer Doxygen warning-check
+coverage from that job. Build Doxygen locally using the instructions below when
+reviewing API documentation, and include relevant warnings/results in the PR.
 
 You may need to build the documentation locally if you want to check the
 results after adding/modifying a significant amount of comments.  This is

@@ -805,7 +805,7 @@ if(GMX_USE_HEFFTE)
             find_package(Heffte 2.2.0 REQUIRED ROCM)
         elseif(GMX_GPU_FFT_CUFFT)
             find_package(Heffte 2.2.0 REQUIRED CUDA)
-            if (NOT DEFINED ENV{GITLAB_CI}) # Don't warn in CI builds
+            if (NOT DEFINED ENV{CI_JOB_ID}) # Don't warn in CI builds
                 message(WARNING "HeFFTe with cuFFT backend should be used in a CUDA build")
             endif()
         elseif(GMX_GPU_FFT_MKL)

@@ -366,10 +366,8 @@ def image_name(configuration: argparse.Namespace) -> str:
     if configuration.cross is not None:
         elements.append(f"cross-{configuration.cross}")
     slug = "-".join(elements)
-    # we are using the GitLab container registry to store the images
-    # to get around issues with pulling them repeatedly from DockerHub
-    # and running into the image pull limitation there.
-    return "registry.gitlab.com/gromacs/gromacs/ci-" + slug
+    # Local tags use the fork namespace; publishing is a separate action.
+    return "ghcr.io/fabiobove-dr/bromax/ci-" + slug
 
 
 if __name__ == "__main__":

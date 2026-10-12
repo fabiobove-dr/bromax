@@ -48,7 +48,7 @@ functionality of `mdrun` without modifying the source code directly.
 If you think that some particular API would be necessary for your work, and
 think that it would be easy to expose, please drop a line on the
 [developer discussion forum](https://gromacs.bioexcel.eu/c/gromacs-developers/10), 
-or contribute the necessary changes on https://gitlab.com/gromacs/gromacs.
+or contribute the necessary changes on https://github.com/fabiobove-dr/bromax.
 
 Linking against `libgromacs`
 ============================

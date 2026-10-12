@@ -4,3 +4,10 @@
 max-line-length = 88
 extend-ignore = E203
 # ... end of compatibility settings for Black code style.
+
+# Generated Docker commands and RST hyperlinks are intentionally long strings;
+# Black formats Python code without changing their emitted content.
+per-file-ignores =
+    admin/containers/scripted_gmx_docker_builds.py:E501
+    admin/containers/utility.py:E501
+    docs/conf.cmakein.py:E501

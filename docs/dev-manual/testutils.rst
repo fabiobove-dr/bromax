@@ -65,7 +65,7 @@ The tests can be executed in a few different ways:
 
 When executed using CTest, the tests produce XML output in
 ``Testing/Temporary/``, containing the result of each test as well as failure
-messages.  This XML is used by GitLab CI for reporting the test status for
+messages.  This XML can be used by CI systems for reporting the test status for
 individual tests.  Note that if a test crashes or fails because of an assert or
 a gmx_fatal() call, no XML is produced for the binary, and CI does not
 report anything for the test binary.  The actual error is only visible in the

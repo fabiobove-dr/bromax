@@ -76,13 +76,6 @@
 #       and beta versions will not increase this number, since nobody should
 #       write code against such versions.
 #   LIBRARY_VERSION        Full library version.
-#   REGRESSIONTEST_BRANCH  For builds not from source packages, name of the
-#       regressiontests branch at gerrit.gromacs.org whose HEAD can test this
-#       code, *if* this code is recent enough (i.e., contains all changes from
-#       the corresponding code branch that affects the regression test
-#       results). Even after a release branch is forked for the source
-#       repository, the correct regressiontests branch can still be main,
-#       because we do not fork it until behaviour needs to change.
 #   REGRESSIONTEST_MD5SUM
 #       The MD5 checksum of the regressiontest tarball. Only used when building
 #       from a source package.
@@ -245,14 +238,8 @@ set(REGRESSIONTEST_VERSION "${GMX_VERSION}${GMX_VERSION_SUFFIX}")
 # Note: Forks that use the suffixing feature later change GMX_VERSION_STRING
 # Ref: https://gitlab.com/gromacs/gromacs/-/merge_requests/2587
 set(GMX_VERSION_STRING "${REGRESSIONTEST_VERSION}")
-set(REGRESSIONTEST_BRANCH "main")
-# Follow the relevant part of the release checklist at
-# https://gitlab.com/gromacs/gromacs/-/wikis/Release-checklist#how-to-build-a-regressiontests-tarball
-# in order to have it build the regressiontests tarball with all the
-# right version naming. The version number and suffix goes into the
-# directory name within the regressiontests tarball, which affects the
-# md5sum of the tarball. The matching md5sum has to go here, and if it
-# isn't right the real release workflow will report a failure.
+# Released source packages use version-specific fixtures and their matching hash.
+# Development trees use the pinned release fixtures in tests/CMakeLists.txt.
 set(REGRESSIONTEST_MD5SUM "2efca4799115329160ccaf84ce442baf" CACHE INTERNAL "MD5 sum of the regressiontests tarball for this GROMACS version")
 
 # If you are making a custom fork of GROMACS, please describe your
@@ -372,7 +359,7 @@ set(VERSION_INFO_CONFIGURE_SCRIPT ${CMAKE_CURRENT_LIST_DIR}/gmxConfigureVersionI
 #          changes.
 #
 # Note that VersionInfo-partial.cmake is also used to transfer version
-# information between GitLab CI jobs for release and documentation builds.
+# information between CI jobs for release and documentation builds.
 
 # Configure information known at this time into a partially filled
 # version info file.

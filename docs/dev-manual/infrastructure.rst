@@ -2,11 +2,10 @@
 Automation and Infrastructure
 =============================
 
-Starting from 2020 release, automated testing and documentation builds are
-performed by GitLab and GitLab Runner.
+Bromax automated testing and documentation builds run on GitHub Actions.
 
 ..  toctree::
     :maxdepth: 2
 
-    gitlab-ci
+    github-actions
 

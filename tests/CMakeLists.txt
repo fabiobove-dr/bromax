@@ -37,9 +37,13 @@ option(REGRESSIONTEST_DOWNLOAD
     "Automatically download regressiontests. Tests can be run with ctest." OFF)
 
 if(REGRESSIONTEST_DOWNLOAD)
+    set(regression_download_options)
     if (NOT SOURCE_IS_SOURCE_DISTRIBUTION)
-        set(REGRESSIONTEST_URL https://gitlab.com/gromacs/gromacs-regressiontests/-/archive/${REGRESSIONTEST_BRANCH}/gromacs-regressiontests-${REGRESSIONTEST_BRANCH}.tar.gz)
-        # REGRESSIONTEST_PATH for dev trees is set later based on the dirname found in the tar
+        # Pinned release fixtures supplement the current tree's built-in tests.
+        set(REGRESSIONTEST_URL https://ftp.gromacs.org/regressiontests/regressiontests-2026.4.tar.gz)
+        set(regression_download_options
+            EXPECTED_HASH SHA256=c1d9b1f8518100fdf113d32f3a67e5d5934bb456cf2e0ba8cb4bceba748ded8f)
+        # The archive root determines REGRESSIONTEST_PATH below.
     else()
         set(REGRESSIONTEST_URL https://ftp.gromacs.org/regressiontests/regressiontests-${REGRESSIONTEST_VERSION}.tar.gz)
         set(REGRESSIONTEST_PATH
@@ -48,7 +52,8 @@ if(REGRESSIONTEST_DOWNLOAD)
     endif()
     set(REGRESSIONTEST_FILE "${CMAKE_CURRENT_BINARY_DIR}/regressiontests.tgz")
     message("Downloading: ${REGRESSIONTEST_URL}")
-    file(DOWNLOAD ${REGRESSIONTEST_URL} "${REGRESSIONTEST_FILE}" SHOW_PROGRESS STATUS status LOG log)
+    file(DOWNLOAD ${REGRESSIONTEST_URL} "${REGRESSIONTEST_FILE}"
+        TLS_VERIFY ON ${regression_download_options} SHOW_PROGRESS STATUS status LOG log)
     list(GET status 0 status_code)
     list(GET status 1 status_string)
 

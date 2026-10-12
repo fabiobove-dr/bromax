@@ -34,7 +34,7 @@
 
 """Building block based Dockerfile generation for CI testing images.
 
-Generates a set of docker images used for running GROMACS CI on Gitlab.
+Generates local Docker build recipes for Bromax development and CI.
 The images are prepared according to a selection of build configuration targets
 that hope to cover a broad enough scope of different possible systems,
 allowing us to check compiler types and versions, as well as libraries used
@@ -69,7 +69,6 @@ import argparse
 import collections
 import collections.abc
 import copy
-import os
 import packaging.version
 import shlex
 import typing
@@ -1159,7 +1158,6 @@ def prepare_venv(version: packaging.version.Version) -> typing.Sequence[str]:
             'pybind11>=2.12' \
             'Pygments>=2.2.0' \
             'pytest>=4.6' \
-            'python-gitlab' \
             'setuptools>=61' \
             'Sphinx>=4.0' \
             'sphinx-argparse' \
@@ -1412,6 +1410,7 @@ def add_cross_compilation_support(
 
     arch_triplet = f"{args.cross}-linux-gnu"
 
+    qemu_flags = ""
     # Determine compiler settings based on which compiler is specified
     if args.llvm is not None:
         c_compiler = f"clang-{args.llvm}"
@@ -1423,7 +1422,6 @@ def add_cross_compilation_support(
         c_compiler = f"{arch_triplet}-gcc-{args.gcc}"
         cxx_compiler = f"{arch_triplet}-g++-{args.gcc}"
         compiler_flags = ""
-        qemu_flags = ""
 
     if args.cross == "riscv64" and args.llvm is not None:
         # QEmu support VLen up to 1024 bits
@@ -1434,7 +1432,7 @@ def add_cross_compilation_support(
     output_stages["main"] += hpccm.primitives.shell(
         commands=[
             # Create a CMake toolchain file for cross-compilation
-            f"mkdir -p /opt/cross",
+            "mkdir -p /opt/cross",
             f"echo 'set(CMAKE_SYSTEM_NAME Linux)' > /opt/cross/{args.cross}-toolchain.cmake",
             f"echo 'set(CMAKE_SYSTEM_PROCESSOR {args.cross})' >> /opt/cross/{args.cross}-toolchain.cmake",
             f"echo 'set(CMAKE_C_COMPILER {c_compiler})' >> /opt/cross/{args.cross}-toolchain.cmake",
@@ -1453,9 +1451,6 @@ def add_cross_compilation_support(
             f"chmod +x /usr/local/bin/run-{args.cross}",
         ]
     )
-
-    # Set environment variables for cross-compilation
-    output_stages["main"] += hpccm.primitives.environment(variables=env_vars)
 
 
 def build_stages(args) -> typing.Iterable["hpccm.Stage"]:
