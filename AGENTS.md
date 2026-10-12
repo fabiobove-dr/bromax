@@ -6,6 +6,8 @@ This repository is `fabiobove-dr/bromax`, an independently maintained GROMACS
 fork. All pushes, issues and PRs for Bromax target this fork. Never push to or
 open/target a PR against `gromacs/gromacs`. Upstream is read/fetch-only; imported
 patches must retain their original commit/MR reference and explain adaptations.
+Use the [upstream synchronization policy](docs/dev-manual/bromax-upstream.md)
+for baseline selection, import provenance and conflict-sensitive validation.
 
 1. Check the worktree for existing changes; preserve unrelated work.
 2. Fetch Bromax `origin/main` and branch from its updated commit.

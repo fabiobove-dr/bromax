@@ -1,0 +1,51 @@
+name: Upstream divergence report
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '41 4 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  report:
+    if: github.repository == 'fabiobove-dr/bromax'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Report upstream changes without modifying source
+        run: |
+          bromax_sha=$(git rev-parse HEAD)
+          git fetch https://github.com/gromacs/gromacs.git main --no-tags
+          upstream_sha=$(git rev-parse FETCH_HEAD)
+          {
+            echo '# Upstream divergence (diagnostic only)'
+            echo "Bromax main: $(git rev-parse HEAD)"
+            echo "Upstream main: $upstream_sha"
+            echo "Merge base: $(git merge-base HEAD "$upstream_sha")"
+            echo 'Ahead / behind:'
+            git rev-list --left-right --count HEAD..."$upstream_sha"
+            echo 'Upstream commits absent from Bromax ancestry:'
+            git log --format='%H %cs %s' HEAD.."$upstream_sha"
+            echo 'Upstream tags (name and object SHA):'
+            git ls-remote --tags https://github.com/gromacs/gromacs.git
+            echo 'Squash-imported patches may already be present; inspect provenance before importing.'
+          } > upstream-report.md
+          cat upstream-report.md >> "$GITHUB_STEP_SUMMARY"
+          test "$(git rev-parse HEAD)" = "$bromax_sha"
+          git diff --exit-code --quiet
+      - uses: actions/upload-artifact@v4
+        with:
+          name: upstream-report
+          path: upstream-report.md
+          retention-days: 30
