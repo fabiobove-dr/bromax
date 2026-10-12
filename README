@@ -1,4 +1,11 @@
-               Welcome to the official version of GROMACS!
+               Welcome to Bromax!
+
+Bromax is a derived fork of GROMACS for molecular dynamics simulations.
+Development, bug reports and feature requests are managed on GitHub:
+https://github.com/fabiobove-dr/bromax
+
+Bromax retains the upstream GROMACS license, attribution and scientific
+citations. It is maintained independently from the upstream distribution.
 
 If you are familiar with Unix, it should be fairly trivial to compile and
 install GROMACS. GROMACS uses only the CMake build system, and our
@@ -6,7 +13,7 @@ installation guide can be found at
 http://manual.gromacs.org/documentation/current/install-guide/index.html
 
 Visit http://forums.gromacs.org/ for discussions and advice.
-Report bugs at https://gitlab.com/gromacs/gromacs/-/issues
+Report Bromax bugs at https://github.com/fabiobove-dr/bromax/issues
 Of course we will do our utmost to help you with any problems, but PLEASE 
 READ THE INSTALLATION INSTRUCTIONS BEFORE CONTACTING US!
 
@@ -17,8 +24,10 @@ If you use GROMACS for research (or other purposes) make sure to reference
 the correct version of the code. The CITATION.cff file next to this README
 contains all metadata useful for citation.
 
-If you are a developer, or change the source for any other reason, check
-out http://www.gromacs.org/development.
+For inherited build, code style and testing conventions, consult the upstream
+GROMACS developer guide:
+https://manual.gromacs.org/current/dev-manual/index.html
+Bromax contribution destinations and merge policy are described below.
 
                                * * * * *
 
@@ -31,12 +40,17 @@ it and say that it was fixed in version X of the file or package
 release. For the same reason, it is important that you can reproduce
 other people's result from a certain GROMACS version.
 
-The easiest way to avoid this kind of problems is to get your modifications
-included in the main distribution. We'll be happy to consider any decent 
-code. If it's a separate program it can probably be included in the contrib 
-directory straight away (not supported by us), but for major changes in the 
-main code we appreciate if you first test that it works with (and without) 
-MPI, threads, double precision, etc.
+Contribute Bromax changes through pull requests targeting the main branch of
+fabiobove-dr/bromax:
+https://github.com/fabiobove-dr/bromax/pulls
+
+Start from an updated main branch and keep each pull request focused on one
+issue. Include relevant tests and numerical validation for simulation changes;
+performance claims require reproducible before/after measurements. Check
+affected configurations, including MPI, threads, precision and GPU backends.
+Pull requests are squash-merged into Bromax main after validation. Upstream
+GROMACS is a read/fetch source; Bromax development does not push branches or
+open pull requests against gromacs/gromacs.
 
 If you still want to distribute a modified version or use part of GROMACS
 in your own program, remember that the entire project must be licensed
