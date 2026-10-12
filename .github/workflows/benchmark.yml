@@ -1,0 +1,119 @@
+name: Paired CPU benchmark
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ['admin/benchmarks/**', '.github/workflows/benchmark.yml']
+  workflow_dispatch:
+    inputs:
+      candidate:
+        description: Candidate commit/ref in Bromax (empty uses workflow commit)
+        type: string
+        default: ''
+      tag:
+        description: Canonical corpus tag (cpu selects all v1 cases)
+        type: string
+        default: cpu
+  schedule:
+    - cron: '17 4 * * 2'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: benchmark-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  paired:
+    if: github.repository == 'fabiobove-dr/bromax'
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            backend: cpu
+            gpu: 'OFF'
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        shell: bash
+    timeout-minutes: 180
+    env:
+      CC: gcc-13
+      CXX: g++-13
+      OMP_NUM_THREADS: 2
+      CI_JOB_ID: ${{ github.run_id }}
+      RUNNER_LABEL: ${{ matrix.runner }}
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_MAXSIZE: 1G
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          path: tools
+          persist-credentials: false
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          path: baseline
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.candidate || github.sha }}
+          path: candidate
+          persist-credentials: false
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends gcc-13 g++-13 ninja-build ccache libfftw3-dev
+      - uses: actions/cache@v5
+        with:
+          path: .ccache
+          key: benchmark-${{ matrix.backend }}-gcc13-${{ github.sha }}
+          restore-keys: |
+            benchmark-${{ matrix.backend }}-gcc13-
+      - name: Test benchmark inference and guards
+        run: python3 -m unittest discover -s tools/admin/benchmarks
+      - name: Configure and build both revisions identically
+        env:
+          GPU_BACKEND: ${{ matrix.gpu }}
+        run: |
+          for tree in baseline candidate; do
+            cmake -S "$tree" -B "$tree/build" -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DGMX_GPU="$GPU_BACKEND" \
+              -DGMX_SIMD=Auto -DGMX_DOUBLE=OFF -DGMX_THREAD_MPI=ON -DGMX_MPI=OFF \
+              -DGMX_BUILD_UNITTESTS=ON -DREGRESSIONTEST_DOWNLOAD=ON \
+              2>&1 | tee "$tree/configure.log"
+            cmake --build "$tree/build" --target all tests --parallel 2 \
+              2>&1 | tee "$tree/build.log"
+          done
+      - name: Run correctness gates and paired measurements
+        env:
+          CASE_TAG: ${{ inputs.tag || (github.event_name == 'pull_request' && 'argon' || 'cpu') }}
+        run: |
+          python3 tools/admin/benchmarks/paired.py \
+            --baseline baseline --candidate candidate \
+            --baseline-build baseline/build --candidate-build candidate/build \
+            --tag "$CASE_TAG" --output results
+      - name: Publish measured summary
+        if: always()
+        run: |
+          if [ -f results/summary.md ]; then
+            cat results/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload raw measurements and validation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: paired-${{ matrix.backend }}-${{ github.run_id }}
+          retention-days: 30
+          path: |
+            results/
+            baseline/configure.log
+            baseline/build.log
+            candidate/configure.log
+            candidate/build.log
+            baseline/build/Testing/Temporary/
+            candidate/build/Testing/Temporary/
