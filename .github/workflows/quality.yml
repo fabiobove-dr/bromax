@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   checks:
     name: Changed-file checks
@@ -33,6 +37,8 @@ jobs:
           tar -xf /tmp/actionlint.tar.gz -C /tmp actionlint
       - name: Test paired benchmark inference and guards
         run: python -m unittest discover -s admin/benchmarks
+      - name: Test reproducibility comparisons and failure artifacts
+        run: python -m unittest discover -s admin/reproducibility
       - name: Check canonical corpus integrity and selection
         run: python -m unittest discover -s tests/corpus
       - name: Test change classification and header analysis selection
@@ -114,7 +120,7 @@ jobs:
       - name: Install compilation and analysis tools
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends clang-18 clang-tidy-18 ninja-build ccache libfftw3-dev
+          sudo apt-get install --no-install-recommends clang-18 clang-tidy-18 libomp-18-dev ninja-build ccache libfftw3-dev
       - name: Verify the clang-tidy header and failure path
         run: python3 .github/scripts/test_pr_quality.py
       - uses: actions/cache@v5
@@ -134,7 +140,7 @@ jobs:
       - name: Build application and test dependencies
         run: cmake --build build --target all tests --parallel 2 2>&1 | tee build.log
       - name: Run unit smoke tests
-        run: ctest --test-dir build -L UnitTest --output-on-failure --no-tests=error --parallel 2 --output-junit smoke-junit.xml 2>&1 | tee smoke.log
+        run: env -u OMP_NUM_THREADS ctest --test-dir build -L UnitTest --output-on-failure --no-tests=error --parallel 2 --output-junit smoke-junit.xml 2>&1 | tee smoke.log
       - name: Analyze changed C++ and header consumers
         run: python3 .github/scripts/pr-quality.py tidy --build build 2>&1 | tee clang-tidy.log
       - name: Upload smoke and analysis diagnostics

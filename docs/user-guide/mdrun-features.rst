@@ -38,9 +38,13 @@ that is based primarily on floating-point arithmetic and is fully
 reproducible. By default, :ref:`gmx mdrun` will observe how things are going
 and vary how the simulation is conducted in order to optimize
 throughput. However, there is a "reproducible mode" available with
-``mdrun -reprod`` that will systematically eliminate all sources of
-variation within that run; repeated invocations on the same input and
-hardware will be binary identical. However, running in this mode on
+``mdrun -reprod`` that disables optimizations affecting binary
+reproducibility. Repeated invocations on the same input, executable, hardware
+and rank/thread layout should be binary identical on supported deterministic
+paths. GPU algorithms using unordered floating-point reductions are not
+covered by that bitwise claim; see :doc:`bromax-performance-accuracy` for
+Bromax's tested configurations and checkpoint/restart contract.
+However, running in this mode on
 different hardware, or with a different compiler, etc. will not be
 reproducible. This should normally only be used when investigating
 possible problems.

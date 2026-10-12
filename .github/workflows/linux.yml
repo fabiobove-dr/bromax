@@ -7,6 +7,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 concurrency:
   group: ${{ github.workflow }}-linux-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -43,7 +47,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends ninja-build ccache gcc-13 g++-13 clang-18 libfftw3-dev libopenmpi-dev openmpi-bin
+          sudo apt-get install --no-install-recommends ninja-build ccache gcc-13 g++-13 clang-18 libomp-18-dev libfftw3-dev libopenmpi-dev openmpi-bin
       - uses: actions/cache@v5
         with:
           path: .ccache
@@ -67,7 +71,12 @@ jobs:
       - name: Build
         run: cmake --build build --target all tests --parallel 2 2>&1 | tee build.log
       - name: Test
-        run: ctest --test-dir build --output-on-failure --no-tests=error --parallel 2 --output-junit junit.xml 2>&1 | tee test.log
+        run: env -u OMP_NUM_THREADS ctest --test-dir build --output-on-failure --no-tests=error --parallel 2 --output-junit junit.xml 2>&1 | tee test.log
+      - name: Check CPU reproducibility and checkpoint restart
+        if: matrix.build_type == 'Release' && matrix.mode == 'thread-mpi'
+        run: |
+          python3 admin/reproducibility/cpu.py --build build --output reproducibility
+          cat reproducibility/summary.md >> "$GITHUB_STEP_SUMMARY"
       - name: Compiler cache statistics
         if: always()
         run: ccache --show-stats
@@ -85,6 +94,7 @@ jobs:
             build/CMakeCache.txt
             build/CMakeFiles/CMakeConfigureLog.yaml
             build/Testing/Temporary/
+            reproducibility/
 
   documentation:
     if: github.repository == 'fabiobove-dr/bromax' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
