@@ -58,7 +58,12 @@ def command(args, cwd, log):
     environment.pop("OMP_NUM_THREADS", None)
     with log.open("w") as output:
         subprocess.run(
-            args, cwd=cwd, stdout=output, stderr=subprocess.STDOUT, check=True
+            args,
+            cwd=cwd,
+            stdout=output,
+            stderr=subprocess.STDOUT,
+            check=True,
+            env=environment,
         )
 
 
