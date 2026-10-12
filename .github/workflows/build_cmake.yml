@@ -1,20 +1,15 @@
 name: CMake Build Matrix
 
 on:
-  push:
-    branches: [main]
-    paths-ignore: ['docs/**', '**/*.md', README, AUTHORS, COPYING, CITATION.cff]
-  pull_request:
-    branches: [main]
-    paths-ignore: ['docs/**', '**/*.md', README, AUTHORS, COPYING, CITATION.cff]
+  workflow_call:
   workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-platforms-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 env:
   CMAKE_VERSION: 3.28.0 # Oldest supported

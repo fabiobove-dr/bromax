@@ -1,21 +1,14 @@
 name: Linux build and test
 
 on:
-  pull_request:
-    branches: [main]
-    paths-ignore: ['docs/**', '**/*.md', README, AUTHORS, COPYING, CITATION.cff]
-  push:
-    branches: [main]
-    paths-ignore: ['docs/**', '**/*.md', README, AUTHORS, COPYING, CITATION.cff]
+  workflow_call:
   workflow_dispatch:
-  schedule:
-    - cron: '23 3 * * 1'
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-linux-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -57,6 +50,7 @@ jobs:
           key: linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.mode }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', '**/CMakeLists.txt') }}-${{ github.sha }}
           restore-keys: |
             linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.mode }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', '**/CMakeLists.txt') }}-
+            linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.mode }}-
       - name: Fetch versioned regression tests
         run: cmake -P .github/scripts/fetch-regressiontests.cmake
       - name: Configure
