@@ -271,7 +271,7 @@ static NbnxmKernelSetup pickNbnxmKernelCpu(const t_inputrec&    inputrec,
     }
 
     // Analytical Ewald exclusion correction is only an option in the SIMD kernel.
-    if (forcePlainC1x1 || (!GMX_SIMD && !forcePlainC4x4))
+    if (forcePlainC1x1)
     {
         return NbnxmKernelSetup{ NbnxmKernelType::Cpu1x1_PlainC, EwaldExclusionType::Table };
     }
@@ -282,6 +282,7 @@ static NbnxmKernelSetup pickNbnxmKernelCpu(const t_inputrec&    inputrec,
                                  pickNbnxmKernelCpuSimdExclusion(hardwareInfo) };
     }
     MSVC_DIAGNOSTIC_RESET
+    // The Verlet buffer estimate assumes clusters of at least 4x4 for scalar CPU kernels.
     return NbnxmKernelSetup{ NbnxmKernelType::Cpu4x4_PlainC, EwaldExclusionType::Table };
 }
 
