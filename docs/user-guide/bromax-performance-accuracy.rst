@@ -176,39 +176,70 @@ validated commit, workload and results when backend/feature evidence changes.
      - Evidence
      - Limits / status
    * - CPU mixed precision, thread-MPI/serial
-     - Local application/test build: 107/107 CTest entries passed; Linux Clang
-       Release/Debug and GCC Release thread-MPI/serial passed in `PR #35 <https://github.com/fabiobove-dr/bromax/pull/35>`_.
-     - Portable SIMD=None build; tests use the current source tree and supplemental
-       2026.4 fixtures. This does not validate every SIMD ISA or statistical observable.
+     - Local SIMD=None and SIMD=Auto application/test builds passed 107/107 CTest
+       entries. Seven Linux configurations passed in
+       `PR #42 CI <https://github.com/fabiobove-dr/bromax/actions/runs/38234369276>`_.
+     - Tests use the source tree and supplemental 2026.4 fixtures. ISA and
+       statistical coverage is limited to the recorded configurations/cases.
    * - CPU external MPI, double precision
-     - GitHub configurations are being introduced by PR #35.
-     - Results pending at this snapshot; no new validation claim. Hosted local
-       MPI tests do not establish cross-node scaling/correctness.
+     - GCC external-MPI and double-precision jobs passed in PR #42 CI, after
+       earlier migration runs in PR #35/#39/#41.
+     - Hosted local MPI tests do not establish cross-node scaling/correctness.
    * - CUDA
-     - Inherited implementation; no Bromax GPU validation result recorded here.
-     - Unverified for fork changes. Local toolkit 12.0 is below this tree's
-       minimum 12.1; do not bypass the build requirement to claim a pass.
+     - Local commit ``89403261eba81410701a89303b4ac7f051bbc2f9``: CUDA 13.0.48,
+       GCC 13.3, RTX 4070 Laptop (SM89, 8 GB), driver 580.173.02, Release,
+       SIMD=Auto, mixed precision, CPU FFTPACK/GPU cuFFT. Quick GPU tests passed
+       29/29 CTest entries; full CUDA build passed 107/107. GPU cases executed.
+     - Single-device evidence; unsupported GTest subcases remain skipped.
+       Ten-step memcheck reports a 6,967,984-byte cuFFT allocation at context
+       reset, reproduced independently with plan/create/destroy/reset calls.
+       Memory-check qualification remains unresolved. No multi-GPU claim.
+   * - GPU-resident water / CUDA Graphs
+     - On that CUDA build, rigid NVT water ran with GPU nonbonded, PME and
+       updates. A 1000-step graph-eligible run recorded 740 MD Graph launches.
+     - Short execution evidence; GPU ensemble statistics and all graph step
+       signatures are not qualified by this run.
+   * - CPU physical validation
+     - Same commit, one rank/two threads: flexible-water NVE convergence passed
+       (maximum deviation 0.027 versus inherited 0.25). Argon NPT ran four
+       500000-step states with seed 20261012; all ensemble comparisons passed
+       the inherited four-quantile limit. Kinetic test p=0.518044, alpha=0.01.
+     - One seed, specific water/argon cases. More replicates and variance
+       characterization are required before statistical tests become PR gates.
    * - SYCL / HIP
      - Inherited implementations; no Bromax hardware results recorded here.
      - Unverified for fork changes; CPU passes provide no backend evidence.
    * - OpenCL
-     - Inherited macOS build/test coverage retained in PR #35.
-     - Run pending at this snapshot. A hosted device/driver test does not validate
-       other vendors or imply CUDA/SYCL/HIP feature parity.
+     - Hosted macOS Clang/OpenCL build/test jobs passed in PR #42 CI.
+     - This does not qualify other vendors or imply CUDA/SYCL/HIP feature parity.
    * - DD / GPU PME decomposition
      - CPU built-in tests exercise supported multi-rank paths. GPU PME decomposition
        is opt-in and explicitly lacks substantial testing in inherited docs.
      - No Bromax multi-GPU or cross-node GPU validation recorded here.
 
-Current development destinations are `Bromax Actions
-<https://github.com/fabiobove-dr/bromax/actions>`_ and `PR #35
-<https://github.com/fabiobove-dr/bromax/pull/35>`_ for CI migration. The existing
-``build_cmake.yml`` represents Windows/macOS; proposed ``linux.yml`` adds CPU
-configuration coverage. Dedicated performance/physical-validation workflows
-are tracked by `#9 <https://github.com/fabiobove-dr/bromax/issues/9>`_ and
-`#22 <https://github.com/fabiobove-dr/bromax/issues/22>`_; the versioned canonical
-corpus is `#32 <https://github.com/fabiobove-dr/bromax/issues/32>`_. Until those
-land, do not represent them as available workflows or validated baselines.
+Reproduce the local CUDA build with ``GMX_GPU=CUDA``,
+``CUDAToolkit_ROOT=/usr/local/cuda-13.0``,
+``CMAKE_CUDA_COMPILER=/usr/local/cuda-13.0/bin/nvcc``,
+``CMAKE_CUDA_ARCHITECTURES=89-real``, ``CMAKE_BUILD_TYPE=Release``,
+``GMX_SIMD=Auto``, ``GMX_FFT_LIBRARY=FFTPACK``, ``GMX_BUILD_UNITTESTS=ON`` and
+``REGRESSIONTEST_DOWNLOAD=ON``. Build ``all tests`` and run CTest with
+``CUDA_VISIBLE_DEVICES=0`` and no inherited ``OMP_NUM_THREADS`` override;
+first select ``-L QuickGpuTest --parallel 1``, then the full suite serially.
+The canonical systems and physical test definitions remain in
+``tests/physicalvalidation/`` and ``tests/corpus/``. Record seeds in generated
+working MDPs, retain resolved MDP/topology/TPR and outputs, and preserve the
+original scientific thresholds.
+
+Bromax development destinations are the `Actions page
+<https://github.com/fabiobove-dr/bromax/actions>`_ and fork PRs. ``ci.yml``
+coordinates quality/Linux/platform checks. The canonical CPU corpus landed in
+`PR #41 <https://github.com/fabiobove-dr/bromax/pull/41>`_; paired manual/weekly
+CPU benchmarking landed in `PR #42 <https://github.com/fabiobove-dr/bromax/pull/42>`_.
+The `real paired run <https://github.com/fabiobove-dr/bromax/actions/runs/38234369133>`_
+completed five argon pairs with both correctness gates passed and timing
+indistinguishable from noise. Physical-validation CI remains tracked in
+`#22 <https://github.com/fabiobove-dr/bromax/issues/22>`_. Local scientific
+results do not establish that this CI workflow has been implemented.
 
 Evidence required for a performance PR
 --------------------------------------
