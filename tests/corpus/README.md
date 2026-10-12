@@ -86,7 +86,8 @@ Every #9/#22 result must retain:
 - Corpus version, manifest/input checksums, tags and selected case; baseline and
   candidate commit SHAs and dirty-state flags.
 - Compiler/version, CMake cache/build flags, executable version/hash, precision,
-  backend, CPU/GPU models, driver/runtime and MPI implementation.
+  backend, CPU/GPU models, driver/runtime and MPI implementation. For scientific
+  analysis, also record Python, NumPy, SciPy and PyMBAR versions.
 - Rank/OpenMP thread layout, affinity and all grompp/mdrun commands; resolved
   MDP (`mdout.mdp`), processed topology (`grompp -pp`) and generated TPR hash,
   including defaults omitted by the source MDP and duration/seed overrides.
