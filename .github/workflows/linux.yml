@@ -1,0 +1,131 @@
+name: Linux build and test
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore: ['docs/**', '**/*.md', README, AUTHORS, COPYING, CITATION.cff]
+  push:
+    branches: [main]
+    paths-ignore: ['docs/**', '**/*.md', README, AUTHORS, COPYING, CITATION.cff]
+  workflow_dispatch:
+  schedule:
+    - cron: '23 3 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.repository == 'fabiobove-dr/bromax'
+    name: Linux ${{ matrix.compiler }} ${{ matrix.build_type }} ${{ matrix.mode }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        compiler: [gcc, clang]
+        build_type: [Release, Debug]
+        mode: [thread-mpi]
+        include: ${{ fromJSON((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '[{"compiler":"gcc","build_type":"Release","mode":"serial"},{"compiler":"gcc","build_type":"Release","mode":"mpi"},{"compiler":"gcc","build_type":"Release","mode":"double"},{"compiler":"clang","build_type":"ASAN","mode":"thread-mpi"},{"compiler":"clang","build_type":"UBSAN","mode":"thread-mpi"}]' || '[{"compiler":"gcc","build_type":"Release","mode":"serial"},{"compiler":"gcc","build_type":"Release","mode":"mpi"},{"compiler":"gcc","build_type":"Release","mode":"double"}]') }}
+    env:
+      CC: ${{ matrix.compiler == 'gcc' && 'gcc-13' || 'clang-18' }}
+      CXX: ${{ matrix.compiler == 'gcc' && 'g++-13' || 'clang++-18' }}
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_MAXSIZE: 600M
+      OMP_NUM_THREADS: 2
+      CI_JOB_ID: ${{ github.run_id }}
+      OMPI_MCA_rmaps_base_oversubscribe: '1'
+      OMPI_MCA_hwloc_base_binding_policy: none
+      UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1:suppressions=${{ github.workspace }}/admin/ubsan-suppressions.txt
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends ninja-build ccache gcc-13 g++-13 clang-18 libfftw3-dev libopenmpi-dev openmpi-bin
+      - uses: actions/cache@v5
+        with:
+          path: .ccache
+          key: linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.mode }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', '**/CMakeLists.txt') }}-${{ github.sha }}
+          restore-keys: |
+            linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.mode }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', '**/CMakeLists.txt') }}-
+      - name: Fetch versioned regression tests
+        run: cmake -P .github/scripts/fetch-regressiontests.cmake
+      - name: Configure
+        env:
+          BUILD_TYPE: ${{ matrix.build_type }}
+          THREAD_MPI: ${{ (matrix.mode == 'serial' || matrix.mode == 'mpi') && 'OFF' || 'ON' }}
+          EXTERNAL_MPI: ${{ matrix.mode == 'mpi' && 'ON' || 'OFF' }}
+          DOUBLE_PRECISION: ${{ matrix.mode == 'double' && 'ON' || 'OFF' }}
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DGMX_GPU=OFF -DGMX_SIMD=None -DGMX_COMPILER_WARNINGS=ON \
+            -DGMX_THREAD_MPI="$THREAD_MPI" -DGMX_MPI="$EXTERNAL_MPI" -DGMX_DOUBLE="$DOUBLE_PRECISION" \
+            -DGMX_BUILD_UNITTESTS=ON -DREGRESSIONTEST_DOWNLOAD=OFF \
+            -DREGRESSIONTEST_PATH="$PWD/regressiontests-2026.4" 2>&1 | tee configure.log
+      - name: Build
+        run: cmake --build build --target all tests --parallel 2 2>&1 | tee build.log
+      - name: Test
+        run: ctest --test-dir build --output-on-failure --no-tests=error --parallel 2 --output-junit junit.xml 2>&1 | tee test.log
+      - name: Compiler cache statistics
+        if: always()
+        run: ccache --show-stats
+      - name: Upload test results and diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.mode }}
+          retention-days: 7
+          path: |
+            configure.log
+            build.log
+            test.log
+            build/junit.xml
+            build/CMakeCache.txt
+            build/CMakeFiles/CMakeConfigureLog.yaml
+            build/Testing/Temporary/
+
+  documentation:
+    if: github.repository == 'fabiobove-dr/bromax' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    name: Documentation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: docs/requirements.txt
+      - name: Install documentation dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends ninja-build libfftw3-dev graphviz imagemagick
+          python -m pip install -r docs/requirements.txt
+      - name: Configure documentation
+        run: cmake -S . -B build -G Ninja -DGMX_GPU=OFF -DGMX_SIMD=None -DGMX_BUILD_MANUAL=OFF -DREGRESSIONTEST_DOWNLOAD=OFF 2>&1 | tee configure.log
+      - name: Build documentation
+        run: cmake --build build --target webpage-sphinx --parallel 2 2>&1 | tee documentation.log
+      - name: Upload documentation and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          retention-days: 7
+          path: |
+            configure.log
+            documentation.log
+            build/docs/sphinx-html.log
+            build/docs/html/

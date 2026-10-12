@@ -1,6 +1,17 @@
 name: CMake Build Matrix
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['docs/**', '**/*.md', README, AUTHORS, COPYING, CITATION.cff]
+  pull_request:
+    branches: [main]
+    paths-ignore: ['docs/**', '**/*.md', README, AUTHORS, COPYING, CITATION.cff]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -14,6 +25,8 @@ env:
 
 jobs:
   build:
+    if: github.repository == 'fabiobove-dr/bromax'
+    timeout-minutes: 60
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
     strategy:
@@ -80,6 +93,9 @@ jobs:
         restore-keys: |
           ${{ matrix.config.name }}-ccache-
 
+    - name: Fetch versioned regression tests
+      run: cmake -P .github/scripts/fetch-regressiontests.cmake
+
     - name: Configure
       run: cmake -P .github/scripts/configure.cmake
 
@@ -89,3 +105,14 @@ jobs:
     - name: Run tests
       run: cmake -P .github/scripts/test.cmake
 
+
+    - name: Upload diagnostic logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.config.name }}-logs
+        retention-days: 7
+        path: |
+          build/CMakeCache.txt
+          build/CMakeFiles/CMakeConfigureLog.yaml
+          build/Testing/Temporary/
