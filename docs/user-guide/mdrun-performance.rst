@@ -3,6 +3,12 @@
 Getting good performance from :ref:`mdrun <gmx mdrun>`
 ======================================================
 
+.. note::
+
+   For Bromax, distinguish execution tuning from scientific parameter changes
+   using :doc:`bromax-performance-accuracy`, including its backend validation
+   status and benchmark protocol.
+
 Here we give an overview on the parallelization and acceleration schemes employed by |Gromacs|.
 The aim is to provide an understanding of the underlying mechanisms that make |Gromacs| one of the
 fastest molecular dynamics simulation packages. The information presented
