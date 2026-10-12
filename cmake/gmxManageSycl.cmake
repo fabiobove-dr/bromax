@@ -53,7 +53,7 @@ endif()
 
 if (GMX_GPU_FFT_CUFFT AND GMX_USE_HEFFTE)
     set(_sycl_has_valid_fft TRUE)
-    if (NOT DEFINED ENV{GITLAB_CI}) # Don't warn in CI builds
+    if (NOT DEFINED ENV{CI_JOB_ID}) # Don't warn in CI builds
         message(WARNING "SYCL build with HeFFTe and cuFFT should only ever be used for testing")
     endif()
 endif()
@@ -68,6 +68,6 @@ if(NOT ${_sycl_has_valid_fft} AND NOT GMX_GPU_FFT_LIBRARY STREQUAL "NONE")
     message(FATAL_ERROR "The selected GPU FFT library ${GMX_GPU_FFT_LIBRARY} is not compatible.${_hint}")
 endif()
 
-if(NOT ${_sycl_has_valid_fft} AND NOT DEFINED ENV{GITLAB_CI}) # Don't warn in CI builds
+if(NOT ${_sycl_has_valid_fft} AND NOT DEFINED ENV{CI_JOB_ID}) # Don't warn in CI builds
     message(WARNING "Building SYCL version without GPU FFT library.  Will not be able to perform FFTs on a GPU, which is not good for performance.")
 endif()

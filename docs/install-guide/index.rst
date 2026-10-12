@@ -1793,11 +1793,13 @@ Bromax records tested configurations in its
 The retained matrix covers Linux GCC/Clang Release and Debug, thread-MPI,
 serial and external MPI, double precision, Windows x64/ARM64, and macOS
 Clang/OpenCL. Manual/weekly jobs cover ASAN/UBSAN and Sphinx documentation.
-See :doc:`../dev-manual/github-actions` for commands and artifacts.
+See the `CI guide <https://github.com/fabiobove-dr/bromax/blob/main/docs/dev-manual/github-actions.rst>`_
+for commands and artifacts.
 
 Inherited support for CUDA, HIP, SYCL and other platforms is not evidence
 that these backends have been validated on Bromax hardware. Consult
-:doc:`../user-guide/bromax-performance-accuracy` for the backend evidence
+the `performance and accuracy guide <https://github.com/fabiobove-dr/bromax/blob/main/docs/user-guide/bromax-performance-accuracy.rst>`_
+for the backend evidence
 and scientific requirements before relying on an optimization.
 
 Support
