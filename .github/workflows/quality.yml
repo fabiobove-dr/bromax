@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   checks:
     name: Changed-file checks
@@ -116,7 +120,7 @@ jobs:
       - name: Install compilation and analysis tools
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends clang-18 clang-tidy-18 ninja-build ccache libfftw3-dev
+          sudo apt-get install --no-install-recommends clang-18 clang-tidy-18 libomp-18-dev ninja-build ccache libfftw3-dev
       - name: Verify the clang-tidy header and failure path
         run: python3 .github/scripts/test_pr_quality.py
       - uses: actions/cache@v5

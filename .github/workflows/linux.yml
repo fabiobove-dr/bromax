@@ -7,6 +7,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 concurrency:
   group: ${{ github.workflow }}-linux-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -43,7 +47,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends ninja-build ccache gcc-13 g++-13 clang-18 libfftw3-dev libopenmpi-dev openmpi-bin
+          sudo apt-get install --no-install-recommends ninja-build ccache gcc-13 g++-13 clang-18 libomp-18-dev libfftw3-dev libopenmpi-dev openmpi-bin
       - uses: actions/cache@v5
         with:
           path: .ccache

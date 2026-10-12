@@ -11,6 +11,9 @@ The runner reuses the canonical, checksummed corpus and benchmark helpers for
 build provenance and subprocess handling. It rejects dirty tracked sources,
 stale executables, GPU builds, double precision, and existing output directories.
 The CI calls it in GCC and Clang Release/thread-MPI jobs after ordinary CTest.
+Linux and quality workflow steps explicitly use Bash with pipeline failure
+propagation, so a failing compiler/test cannot be hidden by `tee` logs. Clang
+OpenMP development headers are explicitly installed.
 
 Each of the three corpus cases runs at one rank with one and two OpenMP threads.
 Within each configuration, two independent 200-step `-reprod` runs and a
