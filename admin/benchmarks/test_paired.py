@@ -33,6 +33,8 @@
 
 import copy
 import json
+import os
+import sys
 from pathlib import Path
 import tempfile
 import unittest
@@ -40,6 +42,7 @@ from unittest.mock import patch
 
 from paired import (
     build_info,
+    command,
     main,
     comparison,
     performance,
@@ -108,6 +111,23 @@ class BenchmarkTests(unittest.TestCase):
             result = json.loads((root / "results/results.json").read_text())
             self.assertEqual(result["status"], "failed")
             self.assertIn("Bromax fork", (root / "results/summary.md").read_text())
+
+    def test_child_commands_do_not_inherit_conflicting_omp_thread_count(self):
+        with tempfile.TemporaryDirectory() as directory, patch.dict(
+            os.environ, {"OMP_NUM_THREADS": "99"}
+        ):
+            root = Path(directory)
+            command(
+                [
+                    sys.executable,
+                    "-c",
+                    "import os; print(os.environ.get('OMP_NUM_THREADS', 'unset'))",
+                ],
+                root,
+                root / "command.log",
+            )
+            self.assertEqual((root / "command.log").read_text().strip(), "unset")
+            self.assertEqual(os.environ["OMP_NUM_THREADS"], "99")
 
     def test_real_counter_format_and_invalid_values(self):
         text = "Performance:        0.104      230.721       51.912            0.052"

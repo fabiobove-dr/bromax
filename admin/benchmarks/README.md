@@ -26,7 +26,9 @@ prevents stale local binaries from being credited to a newer commit.
 
 The standard-library runner reuses corpus integrity/tag selection, then runs
 CTest on both builds with existing unit/integration/regression tolerances.
-Failure blocks timing and retains logs/JUnit. GPU labels in CPU CTest output
+Failure blocks timing and retains logs/JUnit. Child commands clear inherited
+`OMP_NUM_THREADS` so tests can select their own required thread counts; measured
+mdrun calls explicitly request two threads. The caller's environment is preserved. GPU labels in CPU CTest output
 do not imply execution on GPU hardware. Long ensemble/kinetic/physical tests
 remain #22; their absence is explicit in the summary, not presented as a pass.
 
