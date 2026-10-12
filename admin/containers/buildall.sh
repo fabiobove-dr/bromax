@@ -77,7 +77,7 @@ echo
 echo
 
 echo "Run the following to upload the updated images."
-echo "docker login registry.gitlab.com -u <token name> -p <hash>"
+echo "docker login ghcr.io -u <GitHub username> --password-stdin"
 echo
 for arg_string in "${args[@]}"; do
   # shellcheck disable=SC2086
@@ -85,24 +85,3 @@ for arg_string in "${args[@]}"; do
   tags[${#tags[@]}]=$tag
   echo "docker push $tag"
 done
-
-# Check whether built images are used and whether used images are built.
-# Note: Let used images with a ':latest' tag match images without explicit tags.
-for tag in "${tags[@]}"; do
-  image=$(basename $tag)
-  # Checking whether $image is used.
-  grep -qR -e "${image}\(:latest\)*$" ../gitlab-ci || echo Warning: Image $image appears unused.
-done
-list=$(grep -R 'image: ' ../gitlab-ci/ |awk '{print $3}' |sort -u)
-$PYTHON << EOF
-from os.path import basename
-built="""${tags[@]}"""
-built=set(basename(image.rstrip()) for image in built.split())
-in_use="""${list[@]}"""
-in_use=[basename(image.rstrip()) for image in in_use.split()]
-for tag in in_use:
-  if tag.endswith(':latest'):
-    tag = tag.split(':')[0]
-  if not tag in built:
-    print(f'Warning: {tag} is not being built.')
-EOF

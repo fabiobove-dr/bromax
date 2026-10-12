@@ -58,6 +58,14 @@ jobs:
         run: admin/copyright.sh --rev="$MERGE_BASE" check 2>&1 | tee copyright.log
       - name: Check changed Python
         run: python .github/scripts/pr-quality.py python 2>&1 | tee python-lint.log
+      - name: Test changed container recipe helpers
+        env:
+          MERGE_BASE: ${{ steps.changes.outputs.base }}
+        run: |
+          if git diff --name-only "$MERGE_BASE" HEAD -- admin/containers/ | grep -q .; then
+            python -m pip install hpccm==26.5.0
+            python admin/containers/test_build_helpers.py
+          fi
       - name: Save classified paths
         uses: actions/upload-artifact@v4
         with:

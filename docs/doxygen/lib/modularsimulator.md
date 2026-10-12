@@ -424,7 +424,7 @@ Acceptance tests which need to be
 fulfilled to make the modular simulator the default code path:
 
 * End-to-end tests pass on both `do_md` and the new loop in
-  Gitlab pre- and post-submit pipelines
+  the fork's applicable CI configurations
 * Physical validation cases pass on the new loop
 * Performance on different sized benchmark cases, x86 CPU-only
   and NVIDIA GPU are at most 1% slower -

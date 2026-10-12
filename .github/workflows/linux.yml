@@ -51,8 +51,6 @@ jobs:
           restore-keys: |
             linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.mode }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', '**/CMakeLists.txt') }}-
             linux-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.mode }}-
-      - name: Fetch versioned regression tests
-        run: cmake -P .github/scripts/fetch-regressiontests.cmake
       - name: Configure
         env:
           BUILD_TYPE: ${{ matrix.build_type }}
@@ -65,8 +63,7 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DGMX_GPU=OFF -DGMX_SIMD=None -DGMX_COMPILER_WARNINGS=ON \
             -DGMX_THREAD_MPI="$THREAD_MPI" -DGMX_MPI="$EXTERNAL_MPI" -DGMX_DOUBLE="$DOUBLE_PRECISION" \
-            -DGMX_BUILD_UNITTESTS=ON -DREGRESSIONTEST_DOWNLOAD=OFF \
-            -DREGRESSIONTEST_PATH="$PWD/regressiontests-2026.4" 2>&1 | tee configure.log
+            -DGMX_BUILD_UNITTESTS=ON -DREGRESSIONTEST_DOWNLOAD=ON 2>&1 | tee configure.log
       - name: Build
         run: cmake --build build --target all tests --parallel 2 2>&1 | tee build.log
       - name: Test

@@ -409,7 +409,7 @@ Variables affecting the ``all`` target
   It is contained in
   the llvm binary `package <http://releases.llvm.org/download.html#18.0.0>`_. Only
   version 18.0.* is supported. Others might miss tests or give false positives.
-  It is run automatically in GitLab CI for each commit. Many checks have fixes which can automatically be
+  Bromax GitHub CI runs it on changed code using a CPU compilation database. Many checks have fixes which can automatically be
   applied. To run it, the build has to be configured with
   ``cmake -DGMX_CLANG_TIDY=ON -DCMAKE_BUILD_TYPE=Debug``.
   Any ``CMAKE_BUILD_TYPE`` which enables asserts (e.g. ASAN) works. Such a configured build will

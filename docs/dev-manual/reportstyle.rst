@@ -34,10 +34,9 @@ does not result in any warnings or errors in itself. If your example generates e
 not be considered as *real*, or at the minimum it will be much harder to analyse to find the actual issue.
 
 
-If your inputs are sensitive, then it is possible to create private
-`issues <https://gitlab.com/gromacs/gromacs/-/issues/>`_
-so that the developer team can have access to solve the problem, while preventing widespread
-visibility on the internet.
+Bromax GitHub issues are public. For sensitive inputs, provide a scrubbed minimal
+reproducer or arrange a private transfer with a maintainer; do not upload private
+simulation data to a public report.
 
 
 Supporting the developers
@@ -60,27 +59,11 @@ to fix the issue on your own, please adhere to the other standards mentioned on 
 General issue workflow
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The general issue workflow is shown in the figure below:
-
-.. image:: redmine-states.png
-   :alt:  Sample procedure pathway for reported issues.
-
-Project maintainers will apply
-`Status labels <https://gitlab.com/gromacs/gromacs/-/labels?search=status>`__
-as the issue is processed.
-
-* `Status::Accepted <https://gitlab.com/gromacs/gromacs/-/issues?label_name%5B%5D=Status%3A%3AAccepted>`__:
-  Bug confirmed / Desirable feature.
-* `Status::In Progress <https://gitlab.com/gromacs/gromacs/-/issues?label_name%5B%5D=Status%3A%3AIn+Progress>`__:
-  Assignee starts to work.
-* `Status::Blocked <https://gitlab.com/gromacs/gromacs/-/issues?label_name%5B%5D=Status%3A%3ABlocked>`__: Progress requires feedback or other action.
-* `Status::Rejected <https://gitlab.com/gromacs/gromacs/-/issues?label_name%5B%5D=Status%3A%3ARejected>`__:
-  Invalid report or not a desirable feature.
-* `Status::Fix uploaded <https://gitlab.com/gromacs/gromacs/-/issues?label_name%5B%5D=Status%3A%3AFix+uploaded>`__:
-  Merge request is available for review
-* `Status::Feedback-wanted <https://gitlab.com/gromacs/gromacs/-/issues?label_name%5B%5D=Status%3A%3AFeedback-wanted>`__: Resolution pending additional feedback or response
-* `Status::Resolved <https://gitlab.com/gromacs/gromacs/-/issues?label_name%5B%5D=Status%3A%3AResolved>`__:
-  The issue will be closed if there is no further discussion.
+Track proposals and bugs in the `Bromax GitHub issues
+<https://github.com/fabiobove-dr/bromax/issues>`_. Link a focused PR when work is
+ready for review, record validation evidence, and close the issue after its
+criteria are met. Use existing fork labels when useful; upstream labels and
+review roles are not requirements for Bromax. See :doc:`change-management`.
 
 .. Text below is stolen from the old |Gromacs| web page
 

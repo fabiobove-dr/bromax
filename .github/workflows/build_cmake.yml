@@ -88,9 +88,6 @@ jobs:
         restore-keys: |
           ${{ matrix.config.name }}-ccache-
 
-    - name: Fetch versioned regression tests
-      run: cmake -P .github/scripts/fetch-regressiontests.cmake
-
     - name: Locate Visual Studio toolchain
       if: runner.os == 'Windows'
       shell: pwsh

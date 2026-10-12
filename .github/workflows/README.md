@@ -53,7 +53,7 @@ retain CTest and CMake diagnostics.
 The current source tree supplies unit/integration tests, including simulation
 tests. Supplemental regression fixtures are the upstream GROMACS 2026.4
 release archive from `https://ftp.gromacs.org/regressiontests/`, verified with
-SHA256 by `.github/scripts/fetch-regressiontests.cmake`. Its LGPL license and
+SHA256 by the native `tests/CMakeLists.txt` downloader. Its LGPL license and
 provenance remain in the archive. The upstream GitHub regression-test mirror
 is stale (2020); it is deliberately not used. Release fixtures are not claimed
 to cover every new 2027 development feature. Updating the fixture version and
@@ -72,13 +72,13 @@ Direct manual `linux.yml` runs remain available for isolated diagnosis. Windows/
 `gh workflow run build_cmake.yml --repo fabiobove-dr/bromax`.
 
 GPU tests require a separately approved hardware runner; no untrusted PR code
-is sent to self-hosted machines by these workflows. GitLab-specific files can
-be removed under #10 after the retained checks have demonstrated parity.
+is sent to self-hosted machines by these workflows. GitLab-only configuration, templates and upstream dispatch scripts have been
+removed after the retained checks passed; shared build/test helpers remain.
 
 For local Linux reproduction, use the configure/build/test commands in
 `linux.yml`; set the corresponding compiler and configuration values. Run
-`actionlint .github/workflows/*.yml` after editing workflows. Check script
-download behavior with `cmake -P .github/scripts/fetch-regressiontests.cmake`.
+`actionlint .github/workflows/*.yml` after editing workflows. Check fixture
+download behavior with `cmake -S . -B build -DREGRESSIONTEST_DOWNLOAD=ON`.
 
 Workflow syntax and concurrency follow the official GitHub documentation:
 https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax

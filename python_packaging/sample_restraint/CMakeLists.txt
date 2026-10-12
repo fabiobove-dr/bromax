@@ -190,8 +190,7 @@ if(BUILD_TESTING AND (NOT DEFINED GMX_BUILD_UNITTESTS OR GMX_BUILD_UNITTESTS))
             if (DEFINED ENV{CI})
                 # In a CI environment, assume that the supporting software can be provided.
                 if ("$ENV{CI_PROJECT_NAME}" STREQUAL "gromacs")
-                    # We are running in a GitLab CI environment for a gromacs repository.
-                    # See also admin/gitlab-ci/api-client.matrix.gitlab-ci.yml
+                    # Compatibility with callers supplying a GROMACS source tree via CI_PROJECT_DIR.
                     file(COPY
                          $ENV{CI_PROJECT_DIR}/src/external/googletest
                          DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/external/

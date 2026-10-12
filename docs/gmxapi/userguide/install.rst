@@ -753,7 +753,7 @@ Try::
 
 and see if that fixes the problem. If not, try a fresh virtual environment
 (see above) to help narrow down the problem before you
-`open an issue <https://gitlab.com/gromacs/gromacs/-/issues/>`_.
+`open a Bromax issue <https://github.com/fabiobove-dr/bromax/issues>`_.
 
 Errors regarding pybind11
 -------------------------
