@@ -40,6 +40,7 @@ and search for a potential answer or ask a question from the community.
    mdp-options
    mdrun-features
    mdrun-performance
+   bromax-performance-accuracy
    run-time-errors
    cmdline
    terminology
