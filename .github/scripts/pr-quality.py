@@ -34,6 +34,7 @@
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 
@@ -153,6 +154,14 @@ def main():
                 for source in tidy_sources(commands, cpp, deps, Path.cwd())
                 if "/src/external/" not in source
             ]
+            # Analyze consumers, but report header warnings only for changed files.
+            header_filter = (
+                "^("
+                + "|".join(
+                    re.escape(str((Path.cwd() / path).resolve())) for path in cpp
+                )
+                + ")$"
+            )
             for source in sources:
                 subprocess.run(
                     [
@@ -160,6 +169,7 @@ def main():
                         "-p",
                         str(args.build),
                         "--warnings-as-errors=*",
+                        "--header-filter=" + header_filter,
                         source,
                     ],
                     check=True,

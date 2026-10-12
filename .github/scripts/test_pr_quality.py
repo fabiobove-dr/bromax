@@ -89,13 +89,21 @@ class QualityGateTests(unittest.TestCase):
             subprocess.run(["git", "init", "-q", directory], check=True)
             (root / ".gitattributes").write_text("*.h filter=complete_formatting\n")
             (root / ".clang-tidy").write_text(
-                "Checks: '-*,clang-analyzer-core.DivideZero'\n"
+                "Checks: '-*,clang-analyzer-core.DivideZero,bugprone-branch-clone'\n"
                 "HeaderFilterRegex: .*\nWarningsAsErrors: '*'\n"
             )
             header = root / "fixture.h"
             header.write_text("inline int division() { return 1; }\n")
+            inherited = root / "inherited.h"
+            inherited.write_text(
+                "inline int inherited(int x) { "
+                "if (x) { return 1; } else { return 1; } }\n"
+            )
             source = root / "fixture.cpp"
-            source.write_text('#include "fixture.h"\nint f() { return division(); }\n')
+            source.write_text(
+                '#include "fixture.h"\n#include "inherited.h"\n'
+                "int f() { return division() + inherited(1); }\n"
+            )
             (root / "build.ninja").write_text(
                 "rule compile\n"
                 "  command = clang++-18 -MD -MF $out.d -c $in -o $out\n"
@@ -126,6 +134,11 @@ class QualityGateTests(unittest.TestCase):
             bad = subprocess.run(command, cwd=root, capture_output=True, text=True)
             self.assertNotEqual(bad.returncode, 0, bad.stdout + bad.stderr)
             self.assertIn("division by zero", (bad.stdout + bad.stderr).lower())
+            header.write_text("inline int division() { return 1; }\n")
+            (root / "changed-files.json").write_text(json.dumps(["inherited.h"]))
+            changed = subprocess.run(command, cwd=root, capture_output=True, text=True)
+            self.assertNotEqual(changed.returncode, 0, changed.stdout + changed.stderr)
+            self.assertIn("bugprone-branch-clone", changed.stdout + changed.stderr)
 
     def test_git_paths_with_spaces_and_deleted_files(self):
         with tempfile.TemporaryDirectory() as directory:
