@@ -369,6 +369,8 @@ Performance and Run Control
 ``GMX_NBNXM_PLAINC_4X4``
         force the use of the reference 4x4 non-SIMD CPU non-bonded kernel,
         mutually exclusive of ``GMX_NBNXM_PLAINC_1X1``, ``GMX_NBNXM_SIMD_2XNN`` and ``GMX_NBNXM_SIMD_4XN``.
+        This is also the default CPU kernel when SIMD is unavailable, matching
+        the cluster size used to estimate the scalar CPU Verlet buffer.
 
 ``GMX_NBNXM_SIMD_2XNN``
         force the use of 2x(N+N) SIMD CPU non-bonded kernels,

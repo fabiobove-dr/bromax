@@ -37,3 +37,43 @@ jobs:
           docker run --rm --network none --entrypoint /bin/bash bromax-bench:ci-smoke -c \
             'gcc-13 --version >/dev/null && g++-13 --version >/dev/null && cmake --version >/dev/null && ninja --version >/dev/null && python3 --version >/dev/null'
           docker image inspect --format '{{.Id}}' bromax-bench:ci-smoke >> "$GITHUB_STEP_SUMMARY"
+      - name: Run an MD smoke inside the image, without timing
+        shell: bash
+        run: |
+          mkdir -p md-smoke
+          docker run --rm --pull never --network none --read-only \
+            --tmpfs /tmp:rw,nosuid,nodev,size=1g \
+            --cap-drop ALL --security-opt no-new-privileges \
+            --user "$(id -u):$(id -g)" --env HOME=/tmp \
+            --mount "type=bind,source=$PWD,target=/work" \
+            --entrypoint /bin/bash bromax-bench:ci-smoke -c '
+              set -euo pipefail
+              cmake -S /work -B /work/build-container -G Ninja \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_C_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13 \
+                -DGMX_GPU=OFF -DGMX_SIMD=SSE2 -DGMX_DOUBLE=OFF \
+                -DGMX_THREAD_MPI=ON -DGMX_MPI=OFF \
+                -DGMX_BUILD_UNITTESTS=OFF -DREGRESSIONTEST_DOWNLOAD=OFF
+              cmake --build /work/build-container --target gmx --parallel 2
+              cp /work/tests/physicalvalidation/systems/int_water_md_none_pme_pme/input/system.* /work/md-smoke/
+              cd /work/md-smoke
+              /work/build-container/bin/gmx grompp \
+                -f system.mdp -c system.gro -p system.top -o run.tpr
+              /work/build-container/bin/gmx mdrun \
+                -s run.tpr -deffnm run -nsteps 100 \
+                -ntmpi 1 -ntomp 2 -nb cpu -pme cpu -update cpu -pin off -reprod
+              test -s run.log
+              test -s run.edr
+              test -s run.gro
+            ' 2>&1 | tee container-validation.log
+      - name: Retain MD smoke diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpu-image-md-smoke
+          retention-days: 7
+          path: |
+            container-validation.log
+            md-smoke/
+            build-container/CMakeCache.txt
+            build-container/Testing/Temporary/

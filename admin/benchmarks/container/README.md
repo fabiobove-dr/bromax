@@ -96,3 +96,13 @@ must be a separate, carefully qualified protocol. The current paired runner is
 must not be relaxed to permit unsupported cross-version claims. Validate
 cross-version TPR/MDP compatibility, default settings, trajectories, and
 statistical equivalence before treating throughput ratios as meaningful.
+
+## CI validation without benchmark timings
+
+`.github/workflows/benchmark-container-check.yml` builds the image and performs
+a short, 100-step NVE water **execution smoke** inside that image on GitHub.
+This verifies that the pinned CPU toolchain can compile Bromax and execute
+`grompp` and `mdrun`, retaining the raw outputs and errors. It does **not**
+run paired timing or assert a performance improvement; the main CTest matrix is
+validated independently by the existing project CI. No long physical ensemble,
+GPU or benchmark result is inferred from this smoke.
