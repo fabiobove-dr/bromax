@@ -50,7 +50,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --no-install-recommends gcc-13 g++-13 ninja-build libfftw3-dev
-          python -m pip install 'numpy==1.23.5' 'scipy==1.10.1' 'pymbar==3.1.1'
+          python -m pip install 'numpy==1.23.5' 'scipy==1.10.1' 'pymbar==3.1.0'
           python -c 'import numpy, scipy, pymbar; print("numpy", numpy.__version__, "scipy", scipy.__version__, "pymbar", pymbar.__version__)'
       - name: Select immutable canonical NVE integrator case
         run: |
