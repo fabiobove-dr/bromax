@@ -98,11 +98,13 @@ static constexpr int sc_jClusterSize(const NbnxmKernelType kernelType)
 #if GMX_SIMD
         case NbnxmKernelType::Cpu4xN_Simd_4xN: return GMX_SIMD_REAL_WIDTH;
         case NbnxmKernelType::Cpu4xN_Simd_2xNN: return GMX_SIMD_REAL_WIDTH / 2;
-#else
-        case NbnxmKernelType::Cpu4xN_Simd_4xN: return 0;
-        case NbnxmKernelType::Cpu4xN_Simd_2xNN: return 0;
 #endif
         case NbnxmKernelType::Cpu1x1_PlainC: return 1;
+#if !GMX_SIMD
+        // Unsupported SIMD layouts share the zero-sized fallback in a scalar build.
+        case NbnxmKernelType::Cpu4xN_Simd_4xN:
+        case NbnxmKernelType::Cpu4xN_Simd_2xNN:
+#endif
         case NbnxmKernelType::NotSet:
         case NbnxmKernelType::Count: return 0;
         // all other cases are GPU kernels and are handled in the gpu specific method.
