@@ -1,0 +1,39 @@
+name: Fixed benchmark image build check
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'admin/benchmarks/container/**'
+      - '.github/workflows/benchmark-container-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  image-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Validate host launcher and shell syntax
+        shell: bash
+        run: |
+          python3 -m unittest discover -s admin/benchmarks
+          bash -n admin/benchmarks/container/entrypoint.sh
+      - name: Build image without running scientific benchmarks
+        shell: bash
+        run: |
+          docker build --platform linux/amd64 \
+            -f admin/benchmarks/container/Dockerfile \
+            -t bromax-bench:ci-smoke .
+      - name: Verify toolchain and image architecture
+        shell: bash
+        run: |
+          test "$(docker image inspect --format '{{.Os}}/{{.Architecture}}' bromax-bench:ci-smoke)" = linux/amd64
+          docker run --rm --network none --entrypoint /bin/bash bromax-bench:ci-smoke -c \
+            'gcc-13 --version >/dev/null && g++-13 --version >/dev/null && cmake --version >/dev/null && ninja --version >/dev/null && python3 --version >/dev/null'
+          docker image inspect --format '{{.Id}}' bromax-bench:ci-smoke >> "$GITHUB_STEP_SUMMARY"
