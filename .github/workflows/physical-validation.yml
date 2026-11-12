@@ -1,0 +1,94 @@
+name: Canonical integrator physical validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/gromacs/nbnxm/**'
+      - 'src/gromacs/ewald/**'
+      - 'src/gromacs/mdlib/**'
+      - 'src/gromacs/mdrun/**'
+      - 'src/gromacs/modularsimulator/**'
+      - 'src/gromacs/domdec/**'
+      - 'src/gromacs/pulling/**'
+      - 'src/gromacs/listed_forces/**'
+      - 'src/gromacs/gmxpreprocess/**'
+      - 'tests/corpus/**'
+      - 'tests/physicalvalidation/**'
+      - 'admin/physical-validation/**'
+      - '.github/workflows/physical-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: physical-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integrator:
+    if: github.repository == 'fabiobove-dr/bromax'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+    env:
+      CC: gcc-13
+      CXX: g++-13
+      OMP_NUM_THREADS: '2'
+      CI_JOB_ID: ${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Install pinned physical-analysis and build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends gcc-13 g++-13 ninja-build libfftw3-dev
+          python -m pip install 'numpy==1.23.5' 'scipy==1.10.1' 'pymbar==3.1.1'
+          python -c 'import numpy, scipy, pymbar; print("numpy", numpy.__version__, "scipy", scipy.__version__, "pymbar", pymbar.__version__)'
+      - name: Select immutable canonical NVE integrator case
+        run: |
+          python -m unittest discover -s tests/corpus
+          python tests/corpus/check.py --tag integrator --physical-validation > physical-systems.json
+          cat physical-systems.json
+      - name: Build native single-rank CPU GROMACS
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13 \
+            -DGMX_GPU=OFF -DGMX_SIMD=SSE2 -DGMX_DOUBLE=OFF \
+            -DGMX_THREAD_MPI=OFF -DGMX_MPI=OFF \
+            -DGMX_BUILD_UNITTESTS=OFF -DREGRESSIONTEST_DOWNLOAD=OFF \
+            2>&1 | tee physical-configure.log
+          cmake --build build --target gmx --parallel 2 2>&1 | tee physical-build.log
+      - name: Run published integrator convergence validation
+        run: |
+          python tests/physicalvalidation/gmx_physicalvalidation.py \
+            physical-systems.json \
+            --gmx "$PWD/build/bin/gmx" \
+            --wd "$PWD/physical-results" \
+            2>&1 | tee physical-validation.log
+      - name: Publish physical-validation status
+        if: always()
+        run: |
+          if [ -f physical-validation.log ]; then
+            tail -n 40 physical-validation.log >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Retain scientific inputs, outputs and errors
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: canonical-integrator-physical-validation
+          retention-days: 14
+          path: |
+            physical-systems.json
+            physical-configure.log
+            physical-build.log
+            physical-validation.log
+            physical-results/
+            build/CMakeCache.txt
