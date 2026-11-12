@@ -63,7 +63,7 @@ jobs:
             -DCMAKE_C_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13 \
             -DGMX_GPU=OFF -DGMX_SIMD=SSE2 -DGMX_DOUBLE=OFF \
             -DGMX_THREAD_MPI=OFF -DGMX_MPI=OFF \
-            -DGMX_BUILD_UNITTESTS=OFF -DREGRESSIONTEST_DOWNLOAD=OFF \
+            -DGMX_BUILD_UNITTESTS=ON -DREGRESSIONTEST_DOWNLOAD=OFF \
             2>&1 | tee physical-configure.log
           cmake --build build --target gmx --parallel 2 2>&1 | tee physical-build.log
       - name: Run published integrator convergence validation
