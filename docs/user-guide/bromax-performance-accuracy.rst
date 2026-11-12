@@ -119,8 +119,55 @@ Each claim requires its own evidence. Timing-based tuning must respect
 ``-reprod``; checkpoint/restart behavior also needs tests when changing state,
 algorithm selection or ownership. Consult :doc:`mdrun-features` and
 :doc:`managing-simulations` for inherited execution/restart behavior. Issue
-`#30 <https://github.com/fabiobove-dr/bromax/issues/30>`_ tracks continuous Bromax
-reproducibility coverage; it is not assumed complete by this guide.
+`#30 <https://github.com/fabiobove-dr/bromax/issues/30>`_ tracks remaining coverage.
+
+CPU repeat/restart checks now run in the GCC and Clang Release/thread-MPI GitHub
+jobs. For each canonical NVE water, NVT water and NPT argon case, one rank with
+one or two OpenMP threads performs two 200-step ``-reprod`` runs and a run stopped
+at step 100 and resumed from its checkpoint with ``-append``. Nonempty TRR
+(coordinates, velocities and forces) and EDR files must match byte for byte
+within each configuration. Output is sampled every ten steps; the first corpus
+validation seed is recorded explicitly. These short runs test repeat/restart
+consistency, not ensemble correctness. Raw outputs, inputs, commands, build
+provenance and comparison hashes are retained as CI artifacts for seven days.
+The runner is ``admin/reproducibility/cpu.py``; its README gives local commands.
+
+The current adaptive-choice audit distinguishes these paths:
+
+* PME load balancing: ``pmeTuningIsSupported`` rejects reproducible mode before
+  timing-based tuning can run (``ewald/pme_load_balancing.cpp``).
+* Domain-decomposition load balancing: ``domdec.cpp`` disables automatic DLB
+  in reproducible mode and rejects an incompatible explicit request. The
+  one-rank corpus check does not exercise DD or separate PME ranks.
+* CPU FFT planning: ``parallel_3dfft.cpp`` supplies ``FFT5D_NOMEASURE`` for
+  reproducible mode, avoiding timing-based planning.
+* Rank/thread division: ``taskassignment/resourcedivision.cpp`` currently uses
+  hardware/size heuristics, not measured startup timings. Fix rank/thread
+  counts explicitly when comparing runs, including restarts.
+* Verlet list lifetime/pruning: ``nbnxm/pairlist_tuning.cpp`` currently uses
+  input/error estimates and fixed backend constants. Dynamic pruning does not
+  mean timing-based autotuning; the proposed measured tuner must add an explicit
+  reproducible-mode guard or deterministic selection before it is enabled.
+
+New timing-based tuners require a test demonstrating their disabled or
+measurement-independent selection under ``-reprod``, in addition to repeated
+simulation checks. The PR template and root ``AGENTS.md`` require the declared
+equivalence tier and restart behavior. No new tuner is enabled by these checks.
+
+A checkpoint is a continuation of simulation state, including stochastic state;
+keep executable, inputs, precision, backend and rank/thread layout fixed for a
+bitwise comparison. Logs and checkpoint files contain execution metadata and
+are not themselves required to be byte-identical. Changed layout, compiler or
+hardware needs separately justified numerical/physical comparison. Existing
+feature-specific restart restrictions still apply, including the legacy
+expanded-ensemble limitation in :doc:`known-issues`.
+
+GPU kernels that accumulate with unordered floating-point atomics, such as PME
+charge spreading, can produce different rounding across launches. ``-reprod``
+does not make these paths bitwise deterministic. CUDA Graph capture preserves
+dependencies but does not establish deterministic reduction order. The CPU
+check supplies no GPU, multi-GPU/DD, external-MPI or double-precision guarantee;
+those paths require their own supported-tier validation.
 
 Reproducible performance measurements
 -------------------------------------
