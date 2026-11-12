@@ -48,6 +48,7 @@
 #include "gromacs/nbnxm/atomdata.h"
 #include "gromacs/nbnxm/kernel_common.h"
 #include "gromacs/nbnxm/nbnxm.h"
+#include "gromacs/nbnxm/nbnxm_geometry.h"
 
 #include "testutils/testasserts.h"
 
@@ -59,6 +60,20 @@ namespace test
 
 namespace
 {
+
+TEST(KernelSetupTest, ScalarClusterSizes)
+{
+    EXPECT_EQ(sc_iClusterSize(NbnxmKernelType::Cpu4x4_PlainC), 4);
+    EXPECT_EQ(sc_jClusterSize(NbnxmKernelType::Cpu4x4_PlainC), 4);
+    EXPECT_EQ(sc_iClusterSize(NbnxmKernelType::Cpu1x1_PlainC), 1);
+    EXPECT_EQ(sc_jClusterSize(NbnxmKernelType::Cpu1x1_PlainC), 1);
+    EXPECT_EQ(sc_jClusterSize(NbnxmKernelType::NotSet), 0);
+    EXPECT_EQ(sc_jClusterSize(NbnxmKernelType::Count), 0);
+#if !GMX_SIMD
+    EXPECT_EQ(sc_jClusterSize(NbnxmKernelType::Cpu4xN_Simd_4xN), 0);
+    EXPECT_EQ(sc_jClusterSize(NbnxmKernelType::Cpu4xN_Simd_2xNN), 0);
+#endif
+}
 
 TEST(KernelSetupTest, getCoulombKernelTypeRF)
 {
