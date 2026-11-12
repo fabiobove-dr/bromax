@@ -27,6 +27,9 @@
 # derived work must not be called official GROMACS. Details are found
 # in the README & COPYING files - if they are missing, get the
 # official version at https://www.gromacs.org.
+#
+# To help us fund GROMACS development, we humbly ask that you cite
+# the research papers on the package. Check out https://www.gromacs.org.
 
 """Launch the isolated, CPU-only benchmark image on a native Linux x86-64 host."""
 
