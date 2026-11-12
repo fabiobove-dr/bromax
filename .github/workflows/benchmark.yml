@@ -1,9 +1,6 @@
-name: Paired CPU benchmark
+name: Exploratory paired CPU benchmark (manual only)
 
 on:
-  pull_request:
-    branches: [main]
-    paths: ['admin/benchmarks/**', '.github/workflows/benchmark.yml']
   workflow_dispatch:
     inputs:
       candidate:
@@ -14,8 +11,6 @@ on:
         description: Canonical corpus tag (cpu selects all v1 cases)
         type: string
         default: cpu
-  schedule:
-    - cron: '17 4 * * 2'
 
 permissions:
   contents: read

@@ -38,7 +38,7 @@ Do not loosen tolerances just to make an optimization pass.
 
 Before claiming speedups, record baseline/changed commits, workload provenance,
 hardware/backend, compiler/build flags, precision, ranks/threads and repeated
-end-to-end measurements with noise treatment. Follow the dependency order and
+end-to-end measurements with noise treatment. Follow the [tracked execution plan](docs/dev-manual/bromax-workplan.md), dependency order and
 merge gates in [roadmap #33](https://github.com/fabiobove-dr/bromax/issues/33).
 GPU/scheduler changes require appropriate hardware validation, not a CPU-only
 test pass. Report unavailable hardware as a limitation.

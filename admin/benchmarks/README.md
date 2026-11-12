@@ -1,13 +1,15 @@
 # Paired performance benchmarking
 
-`benchmark.yml` compares a recorded Bromax `main` baseline with a candidate
-from this fork, using canonical corpus v1 (#32). It is manual and weekly;
-performance outcomes are not required PR failures. PRs changing this benchmark
-framework itself run the argon case to exercise the pipeline before merge. Both revisions build on the
-same ubuntu-24.04 runner using GCC 13, Release, FFTW, SIMD=Auto, single/mixed
-precision, CPU-only thread-MPI and identical options. Hosted CPU models can
-vary between runs: compare pairs within one run and group historical variance
-by recorded hardware/toolchain, not just the runner label.
+`benchmark.yml` is a **legacy exploratory, manual-only** comparison of Bromax
+`main` against a fork candidate using canonical corpus v1 (#32). Automatic
+weekly runs and PR-triggered performance comparisons are disabled while the
+project prepares a designated fixed-machine Docker benchmark phase (#49/#51).
+Scientific correctness CI remains enabled. The hosted comparison is available
+for explicitly requested diagnostics only and **must not** serve as the final
+speedup claim. It builds both revisions on the same ubuntu-24.04 runner using
+GCC 13, Release, FFTW, SIMD=Auto, mixed precision, CPU-only thread-MPI and
+identical options. Hosted CPU models vary between runs; pairs only compare
+within one run and must be grouped by recorded hardware/toolchain.
 
 After merge:
 
