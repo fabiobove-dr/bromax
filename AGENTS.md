@@ -23,6 +23,18 @@ for baseline selection, import provenance and conflict-sensitive validation.
 Follow the user's authorization for publishing and merging; this file does
 not grant permission on its own. Do not rewrite published `main` history.
 
+## Supported platform and CI merge gate
+
+Bromax officially targets **Linux only**. GCC and Clang Linux configurations,
+including applicable precision, SIMD, MPI and scientific checks, remain required.
+macOS and Windows/MSVC are not supported platforms and their historical CI
+results are not merge gates. Do not disable or bypass Linux quality, CTest,
+scientific validation, or other applicable required checks. The aggregate
+`Bromax CI result` must pass at the PR's current head; pending, failed,
+cancelled, or missing required evidence blocks merging. Performance benchmarks
+run separately on the user's controlled local Docker machine, never as a
+prerequisite to ordinary correctness PRs. Do not claim speedups from hosted CI.
+
 ## Scientific and performance constraints
 
 Preserve requested precision, timestep, PME order/grid accuracy, cutoffs,
@@ -38,7 +50,7 @@ Do not loosen tolerances just to make an optimization pass.
 
 Before claiming speedups, record baseline/changed commits, workload provenance,
 hardware/backend, compiler/build flags, precision, ranks/threads and repeated
-end-to-end measurements with noise treatment. Follow the dependency order and
+end-to-end measurements with noise treatment. Follow the [tracked execution plan](docs/dev-manual/bromax-workplan.md), dependency order and
 merge gates in [roadmap #33](https://github.com/fabiobove-dr/bromax/issues/33).
 GPU/scheduler changes require appropriate hardware validation, not a CPU-only
 test pass. Report unavailable hardware as a limitation.

@@ -24,13 +24,9 @@ jobs:
     needs: quality
     if: needs.quality.outputs.build == 'true'
     uses: ./.github/workflows/linux.yml
-  platforms:
-    needs: quality
-    if: needs.quality.outputs.build == 'true' && github.event_name != 'schedule'
-    uses: ./.github/workflows/build_cmake.yml
   result:
     name: Bromax CI result
-    needs: [quality, linux, platforms]
+    needs: [quality, linux]
     if: always() && github.repository == 'fabiobove-dr/bromax'
     runs-on: ubuntu-24.04
     steps:
@@ -39,18 +35,10 @@ jobs:
           QUALITY_RESULT: ${{ needs.quality.result }}
           BUILD_REQUIRED: ${{ needs.quality.outputs.build }}
           LINUX_RESULT: ${{ needs.linux.result }}
-          PLATFORMS_RESULT: ${{ needs.platforms.result }}
-          EVENT_NAME: ${{ github.event_name }}
         run: |
           test "$QUALITY_RESULT" = success
           if [ "$BUILD_REQUIRED" = true ]; then
             test "$LINUX_RESULT" = success
-            if [ "$EVENT_NAME" = schedule ]; then
-              test "$PLATFORMS_RESULT" = skipped
-            else
-              test "$PLATFORMS_RESULT" = success
-            fi
           else
             test "$LINUX_RESULT" = skipped
-            test "$PLATFORMS_RESULT" = skipped
           fi
